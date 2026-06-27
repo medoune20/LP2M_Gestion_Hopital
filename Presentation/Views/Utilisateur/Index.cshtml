@@ -1,0 +1,68 @@
+@model List<Utilisateur>
+@{
+    ViewData["Title"] = "Utilisateurs";
+}
+
+<div class="gh-page-header">
+    <div class="gh-page-header-inner">
+        <div>
+            <h1 class="gh-page-title"><i class="bi bi-people me-2"></i>Utilisateurs & rôles</h1>
+            <p class="gh-page-subtitle">Gestion des accès, profils et comptes actifs</p>
+        </div>
+        <a href="@Url.Action("Nouveau", "Utilisateur")" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nouvel utilisateur</a>
+    </div>
+</div>
+
+<div class="gh-content">
+    <div class="gh-card">
+        <div class="gh-card-body p-0">
+            <div class="table-responsive">
+                <table class="gh-table table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Login</th>
+                            <th>Rôle</th>
+                            <th>Médecin lié</th>
+                            <th>Dernière connexion</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@u.NomComplet</td>
+                            <td><span class="badge text-bg-light border">@u.Login</span></td>
+                            <td>@u.RoleLibellé</td>
+                            <td>@(u.Medecin?.NomComplet ?? "—")</td>
+                            <td>@(u.DernièreConnexion?.ToString("dd/MM/yyyy HH:mm") ?? "Jamais")</td>
+                            <td>
+                                @if (u.Actif)
+                                {
+                                    <span class="badge text-bg-success">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Inactif</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a href="@Url.Action("Modifier", "Utilisateur", new { id = u.Id })" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="@Url.Action("BasculerActif", "Utilisateur")" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@u.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Activer / désactiver"><i class="bi bi-power"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
