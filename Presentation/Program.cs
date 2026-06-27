@@ -27,10 +27,20 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+// Hébergement LP2M : permet à l'application de fonctionner sous
+// https://lp2medoune.com/hopital tout en gardant /health disponible en local.
+var pathBase = Environment.GetEnvironmentVariable("PATH_BASE")?.Trim();
+if (!string.IsNullOrWhiteSpace(pathBase))
+{
+    if (!pathBase.StartsWith('/')) pathBase = "/" + pathBase;
+    app.UsePathBase(pathBase);
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DatabaseInitializer.InitialiserAsync(db);
+    await Lp2mSanteSchema.AppliquerAsync(db);
 }
 
 if (!app.Environment.IsDevelopment())
