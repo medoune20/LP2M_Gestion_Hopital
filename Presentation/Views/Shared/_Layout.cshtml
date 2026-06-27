@@ -12,53 +12,19 @@
     <title>@ViewData["Title"] — LP2M Santé</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="@Url.Content("~/css/site.css")" rel="stylesheet" asp-append-version="true" />
-    <link href="@Url.Content("~/css/lp2m-hospital.css")" rel="stylesheet" asp-append-version="true" />
-    <style>
-        :root { --lp2m-sidebar-w: 276px; --lp2m-topbar-h: 58px; }
-        body.lp2m-app { background: #f4f8fb; }
-        .lp2m-topbar { position: sticky; top: 0; z-index: 50; min-height: var(--lp2m-topbar-h); display: flex; align-items: center; gap: .8rem; padding: .5rem .85rem; background: linear-gradient(135deg,#07182a,#0f3c5e 55%,#0ea5e9); color: #fff; box-shadow: 0 8px 24px rgba(7,24,42,.18); }
-        .lp2m-burger { border: 0; background: rgba(255,255,255,.12); color: #fff; border-radius: 12px; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; }
-        .lp2m-brand { color: #fff; text-decoration: none; display: flex; align-items: center; gap: .5rem; font-weight: 900; letter-spacing: .02em; }
-        .lp2m-topbar-right { margin-left: auto; display: flex; align-items: center; gap: .6rem; }
-        .lp2m-user { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; }
-        .lp2m-logout { color: #fff; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); }
-        .lp2m-backdrop { position: fixed; inset: 0; z-index: 54; background: rgba(15,23,42,.55); opacity: 0; pointer-events: none; transition: .18s; }
-        .lp2m-sidebar { position: fixed; left: 0; top: var(--lp2m-topbar-h); bottom: 0; width: var(--lp2m-sidebar-w); z-index: 55; overflow-y: auto; background: linear-gradient(180deg,#07182a 0%,#0a2540 58%,#082033 100%); border-right: 1px solid rgba(255,255,255,.08); box-shadow: 4px 0 20px rgba(0,0,0,.18); }
-        .lp2m-nav { padding: .65rem .7rem 1rem; }
-        .lp2m-nav-section-toggle { width: 100%; border: 0; background: transparent; color: rgba(255,255,255,.78); display: flex; align-items: center; justify-content: space-between; gap: .5rem; cursor: pointer; padding: .45rem .55rem; margin-top: .55rem; text-align: left; }
-        .lp2m-nav-section-toggle:hover { background: rgba(255,255,255,.06); border-radius: 12px; color: #fff; }
-        .lp2m-nav-section-toggle .lp2m-nav-sep { margin: 0; flex: 1; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .72; }
-        .lp2m-nav-section-toggle .bi-chevron-down { transition: transform .18s ease; font-size: .82rem; opacity: .72; }
-        .lp2m-nav-section-toggle.is-collapsed .bi-chevron-down { transform: rotate(-90deg); }
-        .lp2m-nav-section { display: grid; gap: .15rem; }
-        .lp2m-nav-section.is-collapsed { display: none; }
-        .lp2m-link { min-height: 42px; border: 1px solid transparent; display: flex; align-items: center; gap: .72rem; color: rgba(255,255,255,.72); text-decoration: none; padding: .58rem .72rem; border-radius: 12px; font-weight: 650; font-size: .92rem; margin-bottom: .12rem; }
-        .lp2m-link i { font-size: 1.08rem; width: 1.25rem; text-align: center; }
-        .lp2m-link:hover, .lp2m-link.active, .lp2m-link.actif { background: rgba(14,165,233,.18); border-color: rgba(255,255,255,.08); color: #fff; }
-        .lp2m-link.active, .lp2m-link.actif { box-shadow: inset 3px 0 0 #38bdf8; }
-        .lp2m-main { padding-top: 1rem; padding-bottom: 90px; }
-        .mobile-bottom-nav { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 80; height: 64px; border-radius: 22px; background: rgba(255,255,255,.94); border: 1px solid rgba(15,23,42,.08); box-shadow: 0 18px 46px rgba(15,23,42,.18); backdrop-filter: blur(18px); display: grid; grid-template-columns: repeat(5,1fr); overflow: hidden; }
-        .mobile-bottom-nav a { color: #64748b; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: .68rem; font-weight: 800; }
-        .mobile-bottom-nav a i { font-size: 1.18rem; }
-        .mobile-bottom-nav a.active, .mobile-bottom-nav a.actif { color: #0284c7; background: rgba(14,165,233,.10); }
-        .mobile-nav-pos { color: #fff !important; background: linear-gradient(135deg,#0ea5e9,#0369a1) !important; }
-        @@media (min-width: 992px) { .lp2m-topbar { position: fixed; left: 0; right: 0; } .lp2m-sidebar { top: var(--lp2m-topbar-h); } .lp2m-main { margin-left: var(--lp2m-sidebar-w); padding-top: calc(var(--lp2m-topbar-h) + 1rem); padding-bottom: 1.5rem; } }
-        @@media (max-width: 991px) { .lp2m-sidebar { top: 0; transform: translateX(-105%); transition: transform .2s ease; padding-top: env(safe-area-inset-top); } body.sidebar-open .lp2m-sidebar { transform: translateX(0); } body.sidebar-open .lp2m-backdrop { opacity: 1; pointer-events: auto; } .lp2m-main { padding-top: .75rem; } }
-    </style>
-    @await RenderSectionAsync("Styles", required: false)
+    <link href="@Url.Content("~/css/site.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/css/lp2m-hospital.css")" rel="stylesheet" />
     <meta name="theme-color" content="@couleur" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="@(connecte ? "lp2m-app" : "lp2m-public")" data-path-base="@Context.Request.PathBase">
-
 @if (connecte)
 {
     <header class="lp2m-topbar no-print">
         <button class="lp2m-burger d-lg-none" type="button" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('sidebar-open')"><i class="bi bi-list"></i></button>
-        <a class="lp2m-brand" href="@Url.Action("Index", "Accueil")"><i class="bi bi-hospital-fill"></i><span>LP2M SANTÉ</span></a>
+        <a class="lp2m-brand" href="@Url.Action("Index", "Accueil")"><i class="bi bi-hospital-fill"></i><span>LP2M Santé</span></a>
         <div class="lp2m-topbar-right">
             <span id="lp2m-net" class="badge text-bg-warning" hidden><i class="bi bi-wifi-off me-1"></i>Hors-ligne</span>
             <span class="lp2m-user" title="@nom"><i class="bi bi-person-circle"></i><span class="d-none d-sm-inline">@nom</span></span>
@@ -70,63 +36,43 @@
 
     <aside class="lp2m-sidebar no-print">
         <nav class="lp2m-nav">
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="pilotage" aria-expanded="true"><span class="lp2m-nav-sep">Pilotage</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="pilotage">
-                <a class="lp2m-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")"><i class="bi bi-grid-1x2"></i><span>Administration LP2M</span></a>
-            </div>
+            <div class="lp2m-nav-title">Pilotage</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")"><i class="bi bi-grid-1x2"></i><span>Hub LP2M</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="patients" aria-expanded="true"><span class="lp2m-nav-sep">Patients</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="patients">
-                <a class="lp2m-link" href="@Url.Action("Index", "Patient")"><i class="bi bi-person-lines-fill"></i><span>Patients</span></a>
-                <a class="lp2m-link" href="@Url.Action("Nouveau", "Patient")"><i class="bi bi-person-plus"></i><span>Nouveau patient</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#patient"><i class="bi bi-phone"></i><span>Accès patient</span></a>
-            </div>
+            <div class="lp2m-nav-title">Patients</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Patient")"><i class="bi bi-person-lines-fill"></i><span>Dossiers patients</span></a>
+            <a class="lp2m-link" href="@Url.Action("Nouveau", "Patient")"><i class="bi bi-person-plus"></i><span>Nouveau patient</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="agenda" aria-expanded="true"><span class="lp2m-nav-sep">Agenda &amp; file d'attente</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="agenda">
-                <a class="lp2m-link" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>Rendez-vous</span></a>
-                <a class="lp2m-link" href="@Url.Action("Nouveau", "RendezVous")"><i class="bi bi-calendar-plus"></i><span>Nouveau RDV</span></a>
-                <a class="lp2m-link" href="@Url.Action("Calendrier", "RendezVous")"><i class="bi bi-calendar-week"></i><span>Calendrier</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#file"><i class="bi bi-hourglass-split"></i><span>File d'attente</span></a>
-            </div>
+            <div class="lp2m-nav-title">Agenda</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>Rendez-vous</span></a>
+            <a class="lp2m-link" href="@Url.Action("Nouveau", "RendezVous")"><i class="bi bi-calendar-plus"></i><span>Nouveau RDV</span></a>
+            <a class="lp2m-link" href="@Url.Action("Calendrier", "RendezVous")"><i class="bi bi-calendar-week"></i><span>Calendrier</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "FileAttente")"><i class="bi bi-hourglass-split"></i><span>File d'attente</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="soins" aria-expanded="true"><span class="lp2m-nav-sep">Soins</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="soins">
-                <a class="lp2m-link" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Consultations</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#tele"><i class="bi bi-camera-video"></i><span>Consultation en ligne</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Examen")"><i class="bi bi-droplet-half"></i><span>Examens &amp; analyses</span></a>
-            </div>
+            <div class="lp2m-nav-title">Soins</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Consultations</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Examen")"><i class="bi bi-droplet-half"></i><span>Examens & analyses</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="hospitalisation" aria-expanded="true"><span class="lp2m-nav-sep">Hospitalisation</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="hospitalisation">
-                <a class="lp2m-link" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital-fill"></i><span>Patients hospitalisés</span></a>
-                <a class="lp2m-link" href="@Url.Action("Nouvelle", "Hospitalisation")"><i class="bi bi-person-check"></i><span>Nouvelle admission</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Departement")"><i class="bi bi-diagram-3"></i><span>Services &amp; lits</span></a>
-            </div>
+            <div class="lp2m-nav-title">Hospitalisation</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital-fill"></i><span>Hospitalisations</span></a>
+            <a class="lp2m-link" href="@Url.Action("Nouvelle", "Hospitalisation")"><i class="bi bi-person-check"></i><span>Nouvelle admission</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Departement")"><i class="bi bi-diagram-3"></i><span>Services & lits</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="finances" aria-expanded="true"><span class="lp2m-nav-sep">Finances &amp; analyses</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="finances">
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#paiements"><i class="bi bi-cash-stack"></i><span>Paiements</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#compta"><i class="bi bi-journal-text"></i><span>Comptabilité</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-graph-up"></i><span>Statistiques</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#alertes"><i class="bi bi-bell"></i><span>Alertes</span></a>
-            </div>
+            <div class="lp2m-nav-title">Finance</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Paiement")"><i class="bi bi-cash-stack"></i><span>Paiements</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Comptabilite")"><i class="bi bi-journal-text"></i><span>Comptabilité</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-graph-up"></i><span>Statistiques</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="administration" aria-expanded="true"><span class="lp2m-nav-sep">Administration</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="administration">
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#admin"><i class="bi bi-people"></i><span>Utilisateurs</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#admin"><i class="bi bi-shield-lock"></i><span>Profils / rôles</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#admin"><i class="bi bi-buildings"></i><span>Tenants</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Medecin")"><i class="bi bi-person-badge"></i><span>Médecins</span></a>
-            </div>
+            <div class="lp2m-nav-title">Communication</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Alerte")"><i class="bi bi-bell"></i><span>Alertes</span></a>
+            <a class="lp2m-link" href="@Url.Action("Journal", "Mail")"><i class="bi bi-envelope"></i><span>Mails</span></a>
+            <a class="lp2m-link" href="@Url.Action("Composer", "Mail")"><i class="bi bi-send"></i><span>Composer mail</span></a>
 
-            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="superadmin" aria-expanded="true"><span class="lp2m-nav-sep">Super-admin</span><i class="bi bi-chevron-down"></i></button>
-            <div class="lp2m-nav-section" data-nav-section-content="superadmin">
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#admin"><i class="bi bi-person-check"></i><span>Demandes d'inscription</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#admin"><i class="bi bi-buildings"></i><span>Tenants</span></a>
-                <a class="lp2m-link" href="@Url.Action("Index", "Lp2m")#com"><i class="bi bi-envelope"></i><span>Envoi mail</span></a>
-            </div>
+            <div class="lp2m-nav-title">Administration</div>
+            <a class="lp2m-link" href="@Url.Action("Index", "Utilisateur")"><i class="bi bi-people"></i><span>Utilisateurs & rôles</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Etablissement")"><i class="bi bi-buildings"></i><span>Établissement</span></a>
+            <a class="lp2m-link" href="@Url.Action("Index", "Medecin")"><i class="bi bi-person-badge"></i><span>Médecins</span></a>
         </nav>
     </aside>
 }
@@ -151,16 +97,16 @@
 {
     <nav class="mobile-bottom-nav d-lg-none no-print">
         <a href="@Url.Action("Index", "Accueil")"><i class="bi bi-speedometer2"></i><span>Accueil</span></a>
-        <a href="@Url.Action("Index", "Lp2m")" class="mobile-nav-pos"><i class="bi bi-grid-1x2-fill"></i><span>LP2M</span></a>
         <a href="@Url.Action("Index", "Patient")"><i class="bi bi-person-lines-fill"></i><span>Patients</span></a>
-        <a href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>RDV</span></a>
-        <a href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Soins</span></a>
+        <a href="@Url.Action("Index", "RendezVous")" class="mobile-nav-pos"><i class="bi bi-calendar3"></i><span>RDV</span></a>
+        <a href="@Url.Action("Index", "FileAttente")"><i class="bi bi-hourglass"></i><span>File</span></a>
+        <a href="@Url.Action("Index", "Lp2m")"><i class="bi bi-grid-1x2"></i><span>LP2M</span></a>
     </nav>
 }
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="@Url.Content("~/js/site.js")" asp-append-version="true"></script>
+<script src="@Url.Content("~/js/site.js")"></script>
 @if (connecte)
 {
     <script>
@@ -170,33 +116,8 @@
                 var href = (a.getAttribute('href') || '').split('#')[0].split('/').filter(Boolean).map(function (x) { return x.toLowerCase(); });
                 var ctrl = href.length ? href[href.length - 1] : null;
                 if (ctrl && segments.indexOf(ctrl) !== -1) a.classList.add('actif');
+                a.addEventListener('click', function () { document.body.classList.remove('sidebar-open'); });
             });
-            var storageKey = 'lp2m.sante.sidebar.collapsed.sections';
-            var collapsed = [];
-            try { collapsed = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch(e) { collapsed = []; }
-            function setCollapsed(name, value) {
-                var content = document.querySelector('[data-nav-section-content="' + name + '"]');
-                var button = document.querySelector('[data-nav-section="' + name + '"]');
-                if (!content || !button) return;
-                content.classList.toggle('is-collapsed', value);
-                button.classList.toggle('is-collapsed', value);
-                button.setAttribute('aria-expanded', value ? 'false' : 'true');
-            }
-            document.querySelectorAll('[data-nav-section]').forEach(function (button) {
-                var name = button.getAttribute('data-nav-section');
-                var content = document.querySelector('[data-nav-section-content="' + name + '"]');
-                var hasActive = content && content.querySelector('.lp2m-link.actif');
-                setCollapsed(name, collapsed.indexOf(name) !== -1 && !hasActive);
-                button.addEventListener('click', function () {
-                    var c = document.querySelector('[data-nav-section-content="' + name + '"]');
-                    var next = c && !c.classList.contains('is-collapsed');
-                    setCollapsed(name, next);
-                    var list = [];
-                    document.querySelectorAll('[data-nav-section].is-collapsed').forEach(function (b) { list.push(b.getAttribute('data-nav-section')); });
-                    localStorage.setItem(storageKey, JSON.stringify(list));
-                });
-            });
-            document.querySelectorAll('.lp2m-link, .mobile-bottom-nav a').forEach(function (a) { a.addEventListener('click', function () { document.body.classList.remove('sidebar-open'); }); });
             var net = document.getElementById('lp2m-net');
             function majReseau() { if (net) net.hidden = navigator.onLine; }
             window.addEventListener('online', majReseau);
