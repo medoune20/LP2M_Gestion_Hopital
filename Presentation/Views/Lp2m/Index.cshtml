@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Administration LP2M";
+}
+
+<div class="gh-page-header">
+    <div class="gh-page-header-inner">
+        <div>
+            <h1 class="gh-page-title"><i class="bi bi-grid-1x2 me-2"></i>Administration LP2M Santé</h1>
+            <p class="gh-page-subtitle">Vue centrale : exploitation, patients, file d'attente, paiements, comptabilité, alertes et administration.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-light" href="@Url.Action("Index", "FileAttente")"><i class="bi bi-hourglass-split me-1"></i>File d'attente</a>
+            <a class="btn btn-outline-light" href="@Url.Action("Nouveau", "Paiement")"><i class="bi bi-cash-coin me-1"></i>Encaisser</a>
+        </div>
+    </div>
+</div>
+
+<div class="gh-content">
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-blue"><div class="gh-metric-icon"><i class="bi bi-people"></i></div><div class="gh-metric-value">@ViewBag.TotalPatients</div><div class="gh-metric-label">Patients</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-indigo"><div class="gh-metric-icon"><i class="bi bi-person-gear"></i></div><div class="gh-metric-value">@ViewBag.TotalUtilisateurs</div><div class="gh-metric-label">Utilisateurs</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-orange"><div class="gh-metric-icon"><i class="bi bi-hourglass-split"></i></div><div class="gh-metric-value">@ViewBag.FileEnAttente</div><div class="gh-metric-label">File active</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-green"><div class="gh-metric-icon"><i class="bi bi-cash-stack"></i></div><div class="gh-metric-value">@string.Format("{0:N0}", ViewBag.PaiementsJour ?? 0)</div><div class="gh-metric-label">Recettes jour</div></div></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-person-lines-fill me-2"></i>Patients</h5></div><div class="gh-card-body"><p class="text-muted">Dossiers patients, création, suivi administratif et accès patient.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" href="@Url.Action("Index", "Patient")">Voir patients</a><a class="btn btn-outline-primary" href="@Url.Action("Nouveau", "Patient")">Nouveau</a></div></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-calendar3 me-2"></i>RDV & file d'attente</h5></div><div class="gh-card-body"><p class="text-muted">Planification, file active, appel patient et orientation vers la consultation.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" href="@Url.Action("Index", "RendezVous")">RDV</a><a class="btn btn-outline-primary" href="@Url.Action("Index", "FileAttente")">File</a></div></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-clipboard2-pulse me-2"></i>Soins</h5></div><div class="gh-card-body"><p class="text-muted">Consultations, téléconsultation, examens et analyses médicales.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" href="@Url.Action("Index", "Consultation")">Consultations</a><a class="btn btn-outline-primary" href="@Url.Action("Index", "Examen")">Examens</a></div></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-hospital me-2"></i>Hospitalisation</h5></div><div class="gh-card-body"><p class="text-muted">Admissions, patients hospitalisés, services et lits.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" href="@Url.Action("Index", "Hospitalisation")">Hospitalisés</a><a class="btn btn-outline-primary" href="@Url.Action("Index", "Departement")">Services</a></div></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-cash-stack me-2"></i>Finance</h5></div><div class="gh-card-body"><p class="text-muted">Paiements, encaissements, comptabilité et statistiques financières.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-success" href="@Url.Action("Nouveau", "Paiement")">Encaisser</a><a class="btn btn-outline-primary" href="@Url.Action("Index", "Comptabilite")">Compta</a></div></div></div></div>
+        <div class="col-md-6 col-xl-4"><div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title"><i class="bi bi-bell me-2"></i>Alertes & mails</h5></div><div class="gh-card-body"><p class="text-muted">Alertes opérationnelles, journal et envoi de mails.</p><div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" href="@Url.Action("Index", "Alerte")">Alertes</a><a class="btn btn-outline-primary" href="@Url.Action("Composer", "Mail")">Mail</a></div></div></div></div>
+    </div>
+</div>
