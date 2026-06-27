@@ -7,12 +7,16 @@ services:
     container_name: gestionhopital
     restart: unless-stopped
     ports:
+      # Exposition temporaire sur l'hote pour que le Caddy LP2M puisse router /hopital.
+      # A terme, cette application pourra rejoindre le meme reseau Docker que les autres apps LP2M.
       - "5050:8080"
     volumes:
       - hopital_data:/data
     environment:
       - DATA_DIR=/data
       - ASPNETCORE_ENVIRONMENT=Production
+      # URL publique : https://lp2medoune.com/hopital
+      - PATH_BASE=/hopital
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
