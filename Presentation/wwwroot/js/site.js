@@ -14,8 +14,41 @@ document.addEventListener('DOMContentLoaded', function () {
         return basePath + url;
     }
 
+    function appUrl(path) {
+        return (basePath || '') + path;
+    }
+
+    // Ajoute le nouveau hub LP2M Santé dans l'interface existante, même si le layout serveur est encore ancien.
+    const lp2mHref = appUrl('/Lp2m');
+    if (!document.querySelector('a[href$="/Lp2m"]')) {
+        const sidebarNav = document.querySelector('.gh-sidebar .gh-nav-section');
+        if (sidebarNav) {
+            const link = document.createElement('a');
+            link.className = 'gh-link';
+            link.href = lp2mHref;
+            link.innerHTML = '<i class="bi bi-grid-1x2"></i><span>Administration LP2M</span>';
+            sidebarNav.appendChild(link);
+        }
+
+        const drawerNav = document.querySelector('.gh-mobile-drawer nav');
+        if (drawerNav) {
+            const link = document.createElement('a');
+            link.className = 'gh-link';
+            link.href = lp2mHref;
+            link.innerHTML = '<i class="bi bi-grid-1x2"></i><span>Administration LP2M</span>';
+            drawerNav.insertBefore(link, drawerNav.children[1] || null);
+        }
+
+        const bottomNav = document.querySelector('.gh-bottom-nav');
+        if (bottomNav) {
+            const link = document.createElement('a');
+            link.href = lp2mHref;
+            link.innerHTML = '<i class="bi bi-grid-1x2"></i><span>LP2M</span>';
+            bottomNav.insertBefore(link, bottomNav.children[1] || null);
+        }
+    }
+
     // Sécurise les anciens liens/formulaires écrits en dur (/Patient, /RendezVous/Nouveau, etc.).
-    // Cela évite les écrans iPhone de type « télécharger Nouveau / Connexion » quand l'app est hébergée sous /hopital.
     document.querySelectorAll('a[href]').forEach(function (a) {
         const href = a.getAttribute('href');
         if (isInternalAbsolute(href)) a.setAttribute('href', withBasePath(href));
@@ -25,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const action = form.getAttribute('action');
         if (isInternalAbsolute(action)) form.setAttribute('action', withBasePath(action));
     });
+
+    // Marque LP2M actif si on est dans le hub.
+    if (location.pathname.toLowerCase().includes('/lp2m')) {
+        document.querySelectorAll('a[href$="/Lp2m"]').forEach(function (a) { a.classList.add('active'); });
+    }
 
     // Mobile menu
     const mobileBtn = document.getElementById('mobileMenuBtn');
