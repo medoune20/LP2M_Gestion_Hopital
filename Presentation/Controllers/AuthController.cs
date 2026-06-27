@@ -13,7 +13,8 @@ public class AuthController : Controller
     public IActionResult Connexion(string? retour)
     {
         if (HttpContext.Session.GetInt32("UtilisateurId") > 0)
-            return LocalRedirect(Url.Content("~/Accueil/Index"));
+            return Redirect(AppUrl("/Accueil/Index"));
+
         ViewBag.Retour = retour;
         return View();
     }
@@ -23,6 +24,7 @@ public class AuthController : Controller
     {
         login = (login ?? string.Empty).Trim();
         motDePasse ??= string.Empty;
+
         var hash = HashMdp(motDePasse);
         var user = await _db.Utilisateurs.FirstOrDefaultAsync(u => u.Login == login && u.MotDePasse == hash && u.Actif);
         if (user == null)
@@ -31,6 +33,7 @@ public class AuthController : Controller
             ViewBag.Retour = retour;
             return View();
         }
+
         user.DernièreConnexion = DateTime.Now;
         await _db.SaveChangesAsync();
 
@@ -47,18 +50,36 @@ public class AuthController : Controller
 
         if (!string.IsNullOrWhiteSpace(retour) && Url.IsLocalUrl(retour) && !retour.Contains("Connexion", StringComparison.OrdinalIgnoreCase))
         {
-            var chemin = retour.StartsWith('/') ? retour[1..] : retour;
-            return LocalRedirect(Url.Content("~/" + chemin));
+            var chemin = retour.StartsWith('/') ? retour : "/" + retour;
+            if (!chemin.StartsWith(AppBase() + "/", StringComparison.OrdinalIgnoreCase))
+                chemin = AppBase() + chemin;
+            return Redirect(chemin);
         }
 
-        return LocalRedirect(Url.Content("~/Accueil/Index"));
+        return Redirect(AppUrl("/Accueil/Index"));
     }
 
     [HttpGet, HttpPost]
     public IActionResult Deconnexion()
     {
         HttpContext.Session.Clear();
-        return LocalRedirect(Url.Content("~/Auth/Connexion"));
+        return Redirect(AppUrl("/Auth/Connexion"));
+    }
+
+    private string AppUrl(string path)
+    {
+        if (!path.StartsWith('/')) path = "/" + path;
+        return AppBase() + path;
+    }
+
+    private string AppBase()
+    {
+        var basePath = Request.PathBase.Value;
+        if (string.IsNullOrWhiteSpace(basePath))
+            basePath = Environment.GetEnvironmentVariable("PATH_BASE") ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(basePath) && !basePath.StartsWith('/'))
+            basePath = "/" + basePath;
+        return basePath.TrimEnd('/');
     }
 
     private static string HashMdp(string mdp)
