@@ -5,7 +5,7 @@
 set -e
 
 REMOTE="${1:-user@votre-serveur.com}"
-APP_DIR="/opt/gestionhopital"
+APP_DIR="/opt/lp2m/gestionhopital"
 
 echo "==> Déploiement sur $REMOTE"
 

@@ -5,7 +5,7 @@
 set -e
 
 REPO="https://github.com/medoune20/LP2M_Gestion_Hopital.git"
-APP_DIR="/opt/gestionhopital"
+APP_DIR="/opt/lp2m/gestionhopital"
 DOMAIN="lp2medoune.com"
 APP_PORT="5050"
 
