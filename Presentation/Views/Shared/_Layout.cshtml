@@ -1,81 +1,86 @@
+@{
+    var basePath = Context.Request.PathBase.ToString();
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>@ViewData["Title"] — GestionHopital</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="@Url.Content("~/css/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/css/site.css")" asp-append-version="true" />
 </head>
-<body>
+<body data-path-base="@basePath">
 
 <!-- SIDEBAR -->
 <aside class="gh-sidebar d-none d-lg-flex flex-column" id="sidebar">
     <div class="gh-sidebar-brand">
         <div class="gh-brand-icon"><i class="bi bi-hospital"></i></div>
         <div class="gh-brand-text">
-            <span class="gh-brand-name">GestionHopital</span>
-            <span class="gh-brand-sub">Système de Santé</span>
+            <span class="gh-brand-name">LP2M Santé</span>
+            <span class="gh-brand-sub">Gestion hospitalière</span>
         </div>
     </div>
 
     <nav class="gh-nav flex-grow-1 overflow-auto py-2">
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Accueil" ? "active" : "")" href="@Url.Action("Index", "Accueil")">
+            <a class="gh-link @(ctrl == "Accueil" ? "active" : "")" href="@Url.Action("Index", "Accueil")">
                 <i class="bi bi-speedometer2"></i><span>Tableau de bord</span>
             </a>
         </div>
 
         <div class="gh-nav-label">Patients</div>
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Patient" ? "active" : "")" href="@Url.Action("Index", "Patient")">
+            <a class="gh-link @(ctrl == "Patient" && action != "Nouveau" ? "active" : "")" href="@Url.Action("Index", "Patient")">
                 <i class="bi bi-people"></i><span>Patients</span>
             </a>
-            <a class="gh-link" href="@Url.Action("Nouveau", "Patient")">
-                <i class="bi bi-person-plus"></i><span>Nouvel enregistrement</span>
+            <a class="gh-link @(ctrl == "Patient" && action == "Nouveau" ? "active" : "")" href="@Url.Action("Nouveau", "Patient")">
+                <i class="bi bi-person-plus"></i><span>Nouveau patient</span>
             </a>
         </div>
 
         <div class="gh-nav-label">Agenda</div>
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "RendezVous" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="@Url.Action("Index", "RendezVous")">
+            <a class="gh-link @(ctrl == "RendezVous" && action == "Index" ? "active" : "")" href="@Url.Action("Index", "RendezVous")">
                 <i class="bi bi-calendar3"></i><span>Rendez-vous du jour</span>
             </a>
-            <a class="gh-link" href="@Url.Action("Nouveau", "RendezVous")">
+            <a class="gh-link @(ctrl == "RendezVous" && action == "Nouveau" ? "active" : "")" href="@Url.Action("Nouveau", "RendezVous")">
                 <i class="bi bi-calendar-plus"></i><span>Nouveau RDV</span>
             </a>
-            <a class="gh-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Calendrier" ? "active" : "")" href="@Url.Action("Calendrier", "RendezVous")">
-                <i class="bi bi-calendar-week"></i><span>Calendrier 14 jours</span>
+            <a class="gh-link @(ctrl == "RendezVous" && action == "Calendrier" ? "active" : "")" href="@Url.Action("Calendrier", "RendezVous")">
+                <i class="bi bi-calendar-week"></i><span>Calendrier</span>
             </a>
         </div>
 
-        <div class="gh-nav-label">Consultations</div>
+        <div class="gh-nav-label">Soins</div>
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Consultation" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="@Url.Action("Index", "Consultation")">
-                <i class="bi bi-clipboard2-pulse"></i><span>Consultations du jour</span>
+            <a class="gh-link @(ctrl == "Consultation" ? "active" : "")" href="@Url.Action("Index", "Consultation")">
+                <i class="bi bi-clipboard2-pulse"></i><span>Consultations</span>
             </a>
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Examen" ? "active" : "")" href="@Url.Action("Index", "Examen")">
-                <i class="bi bi-droplet-half"></i><span>Examens & Analyses</span>
+            <a class="gh-link @(ctrl == "Examen" ? "active" : "")" href="@Url.Action("Index", "Examen")">
+                <i class="bi bi-droplet-half"></i><span>Examens & analyses</span>
             </a>
         </div>
 
         <div class="gh-nav-label">Hospitalisation</div>
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Hospitalisation" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="@Url.Action("Index", "Hospitalisation")">
+            <a class="gh-link @(ctrl == "Hospitalisation" && action == "Index" ? "active" : "")" href="@Url.Action("Index", "Hospitalisation")">
                 <i class="bi bi-hospital-fill"></i><span>Patients hospitalisés</span>
             </a>
-            <a class="gh-link" href="@Url.Action("Nouvelle", "Hospitalisation")">
+            <a class="gh-link @(ctrl == "Hospitalisation" && action == "Nouvelle" ? "active" : "")" href="@Url.Action("Nouvelle", "Hospitalisation")">
                 <i class="bi bi-person-check"></i><span>Nouvelle admission</span>
             </a>
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Departement" ? "active" : "")" href="@Url.Action("Index", "Departement")">
-                <i class="bi bi-diagram-3"></i><span>Services & Lits</span>
+            <a class="gh-link @(ctrl == "Departement" ? "active" : "")" href="@Url.Action("Index", "Departement")">
+                <i class="bi bi-diagram-3"></i><span>Services & lits</span>
             </a>
         </div>
 
         <div class="gh-nav-label">Administration</div>
         <div class="gh-nav-section">
-            <a class="gh-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Medecin" ? "active" : "")" href="@Url.Action("Index", "Medecin")">
+            <a class="gh-link @(ctrl == "Medecin" ? "active" : "")" href="@Url.Action("Index", "Medecin")">
                 <i class="bi bi-person-badge"></i><span>Médecins</span>
             </a>
         </div>
@@ -95,35 +100,34 @@
 
 <!-- TOPBAR mobile -->
 <header class="gh-topbar d-flex d-lg-none align-items-center justify-content-between">
-    <button class="btn btn-link text-white" id="mobileMenuBtn"><i class="bi bi-list fs-4"></i></button>
-    <span class="fw-bold text-white"><i class="bi bi-hospital me-1"></i>GestionHopital</span>
-    <a href="@Url.Action("Deconnexion", "Auth")" class="btn btn-link text-white"><i class="bi bi-box-arrow-right"></i></a>
+    <button class="btn btn-link text-white" id="mobileMenuBtn" type="button" aria-label="Ouvrir le menu"><i class="bi bi-list fs-4"></i></button>
+    <span class="fw-bold text-white"><i class="bi bi-hospital me-1"></i>LP2M Santé</span>
+    <a href="@Url.Action("Deconnexion", "Auth")" class="btn btn-link text-white" aria-label="Déconnexion"><i class="bi bi-box-arrow-right"></i></a>
 </header>
 
 <!-- MOBILE DRAWER -->
 <div class="gh-mobile-overlay d-lg-none" id="mobileOverlay"></div>
 <aside class="gh-mobile-drawer d-lg-none" id="mobileDrawer">
-    <div class="p-3 border-bottom">
-        <strong><i class="bi bi-hospital me-1"></i>GestionHopital</strong>
-        <button class="btn btn-sm btn-link float-end" id="closeDrawer"><i class="bi bi-x-lg"></i></button>
+    <div class="p-3 border-bottom border-dark-subtle d-flex align-items-center justify-content-between">
+        <strong><i class="bi bi-hospital me-1"></i>LP2M Santé</strong>
+        <button class="btn btn-sm btn-link text-white" id="closeDrawer" type="button"><i class="bi bi-x-lg"></i></button>
     </div>
     <nav class="p-2">
         <a class="gh-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-speedometer2"></i><span>Tableau de bord</span></a>
         <a class="gh-link" href="@Url.Action("Index", "Patient")"><i class="bi bi-people"></i><span>Patients</span></a>
+        <a class="gh-link" href="@Url.Action("Nouveau", "Patient")"><i class="bi bi-person-plus"></i><span>Nouveau patient</span></a>
         <a class="gh-link" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>Rendez-vous</span></a>
         <a class="gh-link" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Consultations</span></a>
         <a class="gh-link" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital-fill"></i><span>Hospitalisations</span></a>
         <a class="gh-link" href="@Url.Action("Index", "Examen")"><i class="bi bi-droplet-half"></i><span>Examens</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Medecin")"><i class="bi bi-person-badge"></i><span>Médecins</span></a>
         <a class="gh-link" href="@Url.Action("Index", "Departement")"><i class="bi bi-diagram-3"></i><span>Services</span></a>
-        <hr/>
+        <hr class="border-secondary" />
         <a class="gh-link text-danger" href="@Url.Action("Deconnexion", "Auth")"><i class="bi bi-box-arrow-right"></i><span>Déconnexion</span></a>
     </nav>
 </aside>
 
 <!-- MAIN -->
 <main class="gh-main">
-    <!-- Alertes -->
     @if (TempData["Succès"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show gh-alert mx-3 mt-3" role="alert">
@@ -149,9 +153,17 @@
     @RenderBody()
 </main>
 
+<nav class="gh-bottom-nav d-lg-none" aria-label="Navigation mobile rapide">
+    <a class="@(ctrl == "Accueil" ? "active" : "")" href="@Url.Action("Index", "Accueil")"><i class="bi bi-house-door"></i><span>Accueil</span></a>
+    <a class="@(ctrl == "Patient" ? "active" : "")" href="@Url.Action("Index", "Patient")"><i class="bi bi-people"></i><span>Patients</span></a>
+    <a class="@(ctrl == "RendezVous" ? "active" : "")" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>RDV</span></a>
+    <a class="@(ctrl == "Consultation" ? "active" : "")" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Soins</span></a>
+    <a class="@(ctrl == "Hospitalisation" ? "active" : "")" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital"></i><span>Hosp.</span></a>
+</nav>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="@Url.Content("~/js/site.js")"></script>
+<script src="@Url.Content("~/js/site.js")" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
