@@ -29,6 +29,7 @@ public class MailController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Composer(EnvoiMailVm vm)
     {
         if (string.IsNullOrWhiteSpace(vm.Destinataire) || string.IsNullOrWhiteSpace(vm.Sujet))
@@ -39,9 +40,15 @@ public class MailController : BaseController
 
         var ok = await _email.EnvoyerAsync(vm.Destinataire.Trim(), vm.Sujet.Trim(), vm.Corps ?? "", UtilisateurId);
         if (ok)
+        {
             Succès($"Mail envoyé à {vm.Destinataire}.");
+        }
         else
-            Erreur("Échec de l'envoi. Vérifiez la configuration SMTP.");
+        {
+            var dernier = await _db.JournalMails.OrderByDescending(m => m.DateEnvoi).FirstOrDefaultAsync();
+            var detail = string.IsNullOrWhiteSpace(dernier?.Erreur) ? "Vérifiez la configuration SMTP." : dernier.Erreur;
+            Erreur("Échec de l'envoi : " + detail);
+        }
 
         return RedirectToAction(nameof(Journal));
     }
