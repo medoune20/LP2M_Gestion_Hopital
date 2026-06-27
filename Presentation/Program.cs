@@ -40,6 +40,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DatabaseInitializer.InitialiserAsync(db);
+    await Lp2mSanteSchema.AppliquerAsync(db);
 }
 
 if (!app.Environment.IsDevelopment())
