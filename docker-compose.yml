@@ -10,9 +10,17 @@ services:
       - "5050:8080"
     volumes:
       - hopital_data:/data
+      - hopital_keys:/root/.aspnet/DataProtection-Keys
     environment:
       - DATA_DIR=/data
       - ASPNETCORE_ENVIRONMENT=Production
+      - PATH_BASE=/hopital
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_SSL=${SMTP_SSL:-true}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -22,4 +30,6 @@ services:
 
 volumes:
   hopital_data:
+    driver: local
+  hopital_keys:
     driver: local
