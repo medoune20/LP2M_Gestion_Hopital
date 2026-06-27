@@ -13,7 +13,7 @@ public class AuthController : Controller
     public IActionResult Connexion(string? retour)
     {
         if (HttpContext.Session.GetInt32("UtilisateurId") > 0)
-            return RedirectToAction("Index", "Accueil");
+            return LocalRedirect(Url.Content("~/Accueil/Index"));
         ViewBag.Retour = retour;
         return View();
     }
@@ -21,11 +21,14 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Connexion(string login, string motDePasse, string? retour)
     {
+        login = (login ?? string.Empty).Trim();
+        motDePasse ??= string.Empty;
         var hash = HashMdp(motDePasse);
         var user = await _db.Utilisateurs.FirstOrDefaultAsync(u => u.Login == login && u.MotDePasse == hash && u.Actif);
         if (user == null)
         {
             ViewBag.Erreur = "Identifiants incorrects.";
+            ViewBag.Retour = retour;
             return View();
         }
         user.DernièreConnexion = DateTime.Now;
@@ -42,14 +45,20 @@ public class AuthController : Controller
         if (etab != null)
             HttpContext.Session.SetString("CouleurHopital", etab.Couleur ?? "#0ea5e9");
 
-        return Redirect(retour ?? "/Accueil");
+        if (!string.IsNullOrWhiteSpace(retour) && Url.IsLocalUrl(retour) && !retour.Contains("Connexion", StringComparison.OrdinalIgnoreCase))
+        {
+            var chemin = retour.StartsWith('/') ? retour[1..] : retour;
+            return LocalRedirect(Url.Content("~/" + chemin));
+        }
+
+        return LocalRedirect(Url.Content("~/Accueil/Index"));
     }
 
     [HttpGet, HttpPost]
     public IActionResult Deconnexion()
     {
         HttpContext.Session.Clear();
-        return RedirectToAction("Connexion");
+        return LocalRedirect(Url.Content("~/Auth/Connexion"));
     }
 
     private static string HashMdp(string mdp)
