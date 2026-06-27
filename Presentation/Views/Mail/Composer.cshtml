@@ -16,16 +16,16 @@
                     @Html.AntiForgeryToken()
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Destinataire</label>
-                        <input type="email" name="destinataire" class="form-control" required
+                        <input type="email" name="Destinataire" class="form-control" required
                                placeholder="email@exemple.com" value="@destinataireDefaut">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Objet</label>
-                        <input type="text" name="sujet" class="form-control" required placeholder="Objet du message">
+                        <input type="text" name="Sujet" class="form-control" required placeholder="Objet du message">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Message</label>
-                        <textarea name="corps" class="form-control" rows="8" required
+                        <textarea name="Corps" class="form-control" rows="8" required
                                   placeholder="Contenu du message…"></textarea>
                         <div class="form-text">Vous pouvez utiliser des balises HTML basiques (&lt;b&gt;, &lt;br&gt;, &lt;ul&gt;…).</div>
                     </div>

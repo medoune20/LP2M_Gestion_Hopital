@@ -29,17 +29,17 @@ public class MailController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> Composer(string destinataire, string sujet, string corps)
+    public async Task<IActionResult> Composer(EnvoiMailVm vm)
     {
-        if (string.IsNullOrWhiteSpace(destinataire) || string.IsNullOrWhiteSpace(sujet))
+        if (string.IsNullOrWhiteSpace(vm.Destinataire) || string.IsNullOrWhiteSpace(vm.Sujet))
         {
             Erreur("Destinataire et sujet sont requis.");
             return RedirectToAction(nameof(Composer));
         }
 
-        var ok = await _email.EnvoyerAsync(destinataire.Trim(), sujet.Trim(), corps ?? "", UtilisateurId);
+        var ok = await _email.EnvoyerAsync(vm.Destinataire.Trim(), vm.Sujet.Trim(), vm.Corps ?? "", UtilisateurId);
         if (ok)
-            Succès($"Mail envoyé à {destinataire}.");
+            Succès($"Mail envoyé à {vm.Destinataire}.");
         else
             Erreur("Échec de l'envoi. Vérifiez la configuration SMTP.");
 
@@ -61,4 +61,11 @@ public class MailController : BaseController
         if (m == null) return NotFound();
         return Content(m.Corps, "text/html");
     }
+}
+
+public class EnvoiMailVm
+{
+    public string Destinataire { get; set; } = "";
+    public string Sujet { get; set; } = "";
+    public string Corps { get; set; } = "";
 }
