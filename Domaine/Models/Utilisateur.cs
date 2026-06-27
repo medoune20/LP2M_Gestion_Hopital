@@ -17,6 +17,7 @@ public class Utilisateur
     public string? Email { get; set; }
     public RoleUtilisateur Role { get; set; } = RoleUtilisateur.Réceptionniste;
     public int? MedecinId { get; set; }
+    public Medecin? Medecin { get; set; }
     public bool Actif { get; set; } = true;
     public DateTime DateCréation { get; set; } = DateTime.Now;
     public DateTime? DernièreConnexion { get; set; }
