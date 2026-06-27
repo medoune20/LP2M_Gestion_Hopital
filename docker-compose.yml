@@ -1,0 +1,25 @@
+services:
+  gestionhopital:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gestionhopital:latest
+    container_name: gestionhopital
+    restart: unless-stopped
+    ports:
+      - "5050:8080"
+    volumes:
+      - hopital_data:/data
+    environment:
+      - DATA_DIR=/data
+      - ASPNETCORE_ENVIRONMENT=Production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  hopital_data:
+    driver: local

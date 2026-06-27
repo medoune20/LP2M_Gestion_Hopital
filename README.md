@@ -1,2 +1,0 @@
-# LP2M_Gestion_Hopital
-LP2M_Gestion_Hopital
