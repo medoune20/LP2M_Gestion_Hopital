@@ -17,6 +17,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       # URL publique : https://lp2medoune.com/hopital
       - PATH_BASE=/hopital
+      # Email SMTP : valeurs lues depuis .env serveur, comme GestionBar.
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_SSL=${SMTP_SSL:-true}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
