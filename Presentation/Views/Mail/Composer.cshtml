@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Composer un mail";
+    var destinataireDefaut = ViewBag.Destinataire as string ?? "";
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="/Mail/Journal" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <h1 class="fw-bold mb-0"><i class="bi bi-envelope-plus me-2 text-primary"></i>Composer un mail</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" asp-action="Composer">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Destinataire</label>
+                        <input type="email" name="destinataire" class="form-control" required
+                               placeholder="email@exemple.com" value="@destinataireDefaut">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Objet</label>
+                        <input type="text" name="sujet" class="form-control" required placeholder="Objet du message">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Message</label>
+                        <textarea name="corps" class="form-control" rows="8" required
+                                  placeholder="Contenu du message…"></textarea>
+                        <div class="form-text">Vous pouvez utiliser des balises HTML basiques (&lt;b&gt;, &lt;br&gt;, &lt;ul&gt;…).</div>
+                    </div>
+
+                    <div class="alert alert-info py-2 mb-3" style="font-size:.85rem">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Expéditeur : <strong>LP2M Santé</strong> via lpmedoune@gmail.com
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="/Mail/Journal" class="btn btn-outline-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Envoyer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

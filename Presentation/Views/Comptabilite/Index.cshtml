@@ -1,0 +1,200 @@
+@model List<GestionHopital.Domaine.Models.EcritureComptable>
+@{
+    ViewData["Title"] = "Comptabilité";
+    decimal credits = ViewBag.TotalCredits ?? 0;
+    decimal debits = ViewBag.TotalDebits ?? 0;
+    decimal solde = ViewBag.Solde ?? 0;
+    int mois = ViewBag.Mois ?? DateTime.Today.Month;
+    int annee = ViewBag.Annee ?? DateTime.Today.Year;
+    var labels = (ViewBag.GraphLabels as List<string> ?? new()).Select(x => $"\"{x}\"");
+    var gCredits = (ViewBag.GraphCredits as List<decimal> ?? new());
+    var gDebits = (ViewBag.GraphDebits as List<decimal> ?? new());
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-journal-bookmark me-2 text-primary"></i>Comptabilité</h1>
+        <p class="text-muted mb-0">Journal des écritures — @(new DateTime(annee, mois, 1).ToString("MMMM yyyy"))</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEcriture">
+        <i class="bi bi-plus-circle me-1"></i> Ajouter écriture
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Recettes</div>
+                <div class="metric-value text-success">@credits.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.72rem">FCFA</div>
+                <i class="bi bi-arrow-up-circle metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Dépenses</div>
+                <div class="metric-value text-danger">@debits.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.72rem">FCFA</div>
+                <i class="bi bi-arrow-down-circle metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Solde</div>
+                <div class="metric-value @(solde >= 0 ? "text-primary" : "text-danger")">@solde.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.72rem">FCFA</div>
+                <i class="bi bi-wallet2 metric-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtre mois/année -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2 align-items-end">
+            <div>
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Mois</label>
+                <select name="mois" class="form-select form-select-sm" style="width:130px">
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(m == mois)">@(new DateTime(2000, m, 1).ToString("MMMM"))</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Année</label>
+                <select name="annee" class="form-select form-select-sm" style="width:100px">
+                    @for (int y = DateTime.Today.Year; y >= DateTime.Today.Year - 3; y--)
+                    {
+                        <option value="@y" selected="@(y == annee)">@y</option>
+                    }
+                </select>
+            </div>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Afficher</button>
+        </form>
+    </div>
+</div>
+
+<!-- Graphique évolution -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="fw-bold mb-3">Évolution sur 6 mois</h6>
+        <canvas id="chartCompta" height="90"></canvas>
+    </div>
+</div>
+
+<!-- Table écritures -->
+<div class="card">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-journal fs-1 opacity-25 d-block mb-2"></i>
+                Aucune écriture pour cette période.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Libellé</th>
+                            <th>Référence</th>
+                            <th class="text-end text-success">Crédit (FCFA)</th>
+                            <th class="text-end text-danger">Débit (FCFA)</th>
+                            <th class="text-end">Solde cumul.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @{
+                        decimal cumulSolde = 0;
+                        foreach (var e in Model)
+                        {
+                            cumulSolde += e.Credit - e.Debit;
+                            <tr>
+                                <td>@e.Date.ToString("dd/MM HH:mm")</td>
+                                <td>@e.Libelle</td>
+                                <td><code>@e.ReferenceSource</code></td>
+                                <td class="text-end text-success fw-semibold">@(e.Credit > 0 ? e.Credit.ToString("N0") : "—")</td>
+                                <td class="text-end text-danger fw-semibold">@(e.Debit > 0 ? e.Debit.ToString("N0") : "—")</td>
+                                <td class="text-end @(cumulSolde >= 0 ? "text-primary" : "text-danger") fw-bold">@cumulSolde.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal nouvelle écriture manuelle -->
+<div class="modal fade" id="modalEcriture" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="AjouterEcriture">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-journal-plus me-2"></i>Ajouter une écriture</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Libellé</label>
+                        <input type="text" name="Libelle" class="form-control" required placeholder="Description de l'opération">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-success">Crédit (recette)</label>
+                            <input type="number" name="Credit" class="form-control" min="0" step="100" value="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-danger">Débit (dépense)</label>
+                            <input type="number" name="Debit" class="form-control" min="0" step="100" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label fw-semibold">Référence (optionnel)</label>
+                        <input type="text" name="ReferenceSource" class="form-control" placeholder="N° facture, bon…">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+    var labels = [@Html.Raw(string.Join(",", labels))];
+    var credits = [@string.Join(",", gCredits.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)))];
+    var debits = [@string.Join(",", gDebits.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)))];
+    var ctx = document.getElementById('chartCompta');
+    if(!ctx) return;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Recettes', data: credits, backgroundColor: 'rgba(16,185,129,.7)', borderRadius: 4 },
+                { label: 'Dépenses', data: debits, backgroundColor: 'rgba(239,68,68,.6)', borderRadius: 4 }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+    });
+})();
+</script>
+}

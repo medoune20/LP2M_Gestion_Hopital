@@ -1,170 +1,333 @@
 @{
-    var basePath = Context.Request.PathBase.ToString();
-    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var role = (RoleUtilisateur)(HttpContext.Session.GetInt32("Role") ?? -1);
+    var nom = HttpContext.Session.GetString("UtilisateurNom") ?? "Utilisateur";
+    var couleur = HttpContext.Session.GetString("CouleurHopital") ?? (ViewBag.CouleurHopital as string) ?? "#0ea5e9";
+    var connecte = (HttpContext.Session.GetInt32("UtilisateurId") ?? 0) > 0;
+    bool estSuperAdmin = role == RoleUtilisateur.SuperAdmin;
+    bool estAdmin = role is RoleUtilisateur.SuperAdmin or RoleUtilisateur.Administrateur;
+    bool estMedecin = role == RoleUtilisateur.Médecin;
+    bool estInfirmier = role == RoleUtilisateur.Infirmier;
+    bool estReceptionniste = role == RoleUtilisateur.Réceptionniste;
+    bool estLaborantin = role == RoleUtilisateur.Laborantin;
 }
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" style="--tenant-color:@couleur">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>@ViewData["Title"] — GestionHopital</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="@Url.Content("~/css/site.css")" asp-append-version="true" />
-    <link rel="stylesheet" href="@Url.Content("~/css/lp2m-hospital.css")" asp-append-version="true" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — LP2M Santé</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true">
+    <style>
+        .lp2m-nav-section-toggle {
+            width: 100%; border: 0; background: transparent; color: inherit;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: .5rem; cursor: pointer; padding: .45rem .55rem;
+            margin-top: .55rem; text-align: left;
+        }
+        .lp2m-nav-section-toggle:hover { background: rgba(0,0,0,.04); border-radius: 6px; }
+        .lp2m-nav-section-toggle .lp2m-nav-sep { margin: 0; flex: 1; }
+        .lp2m-nav-section-toggle .bi-chevron-down { transition: transform .18s ease; font-size: .82rem; opacity: .6; }
+        .lp2m-nav-section-toggle.is-collapsed .bi-chevron-down { transform: rotate(-90deg); }
+        .lp2m-nav-section { display: grid; gap: .1rem; }
+        .lp2m-nav-section.is-collapsed { display: none; }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+    <meta name="theme-color" content="@couleur">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
-<body data-path-base="@basePath">
+<body class="@(connecte ? "lp2m-app" : "lp2m-public")">
 
-<!-- SIDEBAR -->
-<aside class="gh-sidebar d-none d-lg-flex flex-column" id="sidebar">
-    <div class="gh-sidebar-brand">
-        <div class="gh-brand-icon"><i class="bi bi-hospital"></i></div>
-        <div class="gh-brand-text">
-            <span class="gh-brand-name">LP2M Santé</span>
-            <span class="gh-brand-sub">Gestion hospitalière</span>
+@if (connecte)
+{
+    <header class="lp2m-topbar no-print">
+        <button class="lp2m-burger d-lg-none" type="button" aria-label="Menu"
+                onclick="document.body.classList.toggle('sidebar-open')">
+            <i class="bi bi-list"></i>
+        </button>
+        <a class="lp2m-brand" asp-controller="Accueil" asp-action="Index">
+            <i class="bi bi-hospital-fill"></i><span>LP2M SANTÉ</span>
+        </a>
+        <div class="lp2m-topbar-right">
+            <span id="lp2m-alertes-badge" class="badge text-bg-danger" hidden></span>
+            <span class="lp2m-user" title="@nom">
+                <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline">@nom</span>
+            </span>
+            <form asp-controller="Auth" asp-action="Deconnexion" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm lp2m-logout">
+                    <i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Déco.</span>
+                </button>
+            </form>
         </div>
-    </div>
+    </header>
 
-    <nav class="gh-nav flex-grow-1 overflow-auto py-2">
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "Accueil" ? "active" : "")" href="@Url.Action("Index", "Accueil")">
-                <i class="bi bi-speedometer2"></i><span>Tableau de bord</span>
-            </a>
-        </div>
+    <div class="lp2m-backdrop d-lg-none" onclick="document.body.classList.remove('sidebar-open')"></div>
 
-        <div class="gh-nav-label">Patients</div>
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "Patient" && action != "Nouveau" ? "active" : "")" href="@Url.Action("Index", "Patient")">
-                <i class="bi bi-people"></i><span>Patients</span>
-            </a>
-            <a class="gh-link @(ctrl == "Patient" && action == "Nouveau" ? "active" : "")" href="@Url.Action("Nouveau", "Patient")">
-                <i class="bi bi-person-plus"></i><span>Nouveau patient</span>
-            </a>
-        </div>
+    <aside class="lp2m-sidebar no-print">
+        <nav class="lp2m-nav">
 
-        <div class="gh-nav-label">Agenda</div>
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "RendezVous" && action == "Index" ? "active" : "")" href="@Url.Action("Index", "RendezVous")">
-                <i class="bi bi-calendar3"></i><span>Rendez-vous du jour</span>
-            </a>
-            <a class="gh-link @(ctrl == "RendezVous" && action == "Nouveau" ? "active" : "")" href="@Url.Action("Nouveau", "RendezVous")">
-                <i class="bi bi-calendar-plus"></i><span>Nouveau RDV</span>
-            </a>
-            <a class="gh-link @(ctrl == "RendezVous" && action == "Calendrier" ? "active" : "")" href="@Url.Action("Calendrier", "RendezVous")">
-                <i class="bi bi-calendar-week"></i><span>Calendrier</span>
-            </a>
-        </div>
-
-        <div class="gh-nav-label">Soins</div>
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "Consultation" ? "active" : "")" href="@Url.Action("Index", "Consultation")">
-                <i class="bi bi-clipboard2-pulse"></i><span>Consultations</span>
-            </a>
-            <a class="gh-link @(ctrl == "Examen" ? "active" : "")" href="@Url.Action("Index", "Examen")">
-                <i class="bi bi-droplet-half"></i><span>Examens & analyses</span>
-            </a>
-        </div>
-
-        <div class="gh-nav-label">Hospitalisation</div>
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "Hospitalisation" && action == "Index" ? "active" : "")" href="@Url.Action("Index", "Hospitalisation")">
-                <i class="bi bi-hospital-fill"></i><span>Patients hospitalisés</span>
-            </a>
-            <a class="gh-link @(ctrl == "Hospitalisation" && action == "Nouvelle" ? "active" : "")" href="@Url.Action("Nouvelle", "Hospitalisation")">
-                <i class="bi bi-person-check"></i><span>Nouvelle admission</span>
-            </a>
-            <a class="gh-link @(ctrl == "Departement" ? "active" : "")" href="@Url.Action("Index", "Departement")">
-                <i class="bi bi-diagram-3"></i><span>Services & lits</span>
-            </a>
-        </div>
-
-        <div class="gh-nav-label">Administration</div>
-        <div class="gh-nav-section">
-            <a class="gh-link @(ctrl == "Medecin" ? "active" : "")" href="@Url.Action("Index", "Medecin")">
-                <i class="bi bi-person-badge"></i><span>Médecins</span>
-            </a>
-        </div>
-    </nav>
-
-    <div class="gh-sidebar-footer">
-        <div class="gh-user-pill">
-            <div class="gh-user-avatar"><i class="bi bi-person-circle"></i></div>
-            <div class="gh-user-info">
-                <span class="gh-user-name">@ViewBag.UtilisateurNom</span>
-                <span class="gh-user-role">@(ViewBag.Role?.ToString() ?? "")</span>
+            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="pilotage" aria-expanded="true">
+                <span class="lp2m-nav-sep">Pilotage</span><i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="lp2m-nav-section" data-nav-section-content="pilotage">
+                <a class="lp2m-link" asp-controller="Accueil" asp-action="Index">
+                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+                </a>
             </div>
-            <a href="@Url.Action("Deconnexion", "Auth")" class="gh-logout-btn" title="Déconnexion"><i class="bi bi-box-arrow-right"></i></a>
-        </div>
-    </div>
-</aside>
 
-<!-- TOPBAR mobile -->
-<header class="gh-topbar d-flex d-lg-none align-items-center justify-content-between">
-    <button class="btn btn-link text-white" id="mobileMenuBtn" type="button" aria-label="Ouvrir le menu"><i class="bi bi-list fs-4"></i></button>
-    <span class="fw-bold text-white"><i class="bi bi-hospital me-1"></i>LP2M Santé</span>
-    <a href="@Url.Action("Deconnexion", "Auth")" class="btn btn-link text-white" aria-label="Déconnexion"><i class="bi bi-box-arrow-right"></i></a>
-</header>
+            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="patients" aria-expanded="true">
+                <span class="lp2m-nav-sep">Patients</span><i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="lp2m-nav-section" data-nav-section-content="patients">
+                <a class="lp2m-link" asp-controller="Patient" asp-action="Index">
+                    <i class="bi bi-people"></i><span>Patients</span>
+                </a>
+                <a class="lp2m-link" asp-controller="Patient" asp-action="Nouveau">
+                    <i class="bi bi-person-plus"></i><span>Nouveau patient</span>
+                </a>
+                <a class="lp2m-link" asp-controller="Patient" asp-action="Index">
+                    <i class="bi bi-search"></i><span>Accès patient</span>
+                </a>
+            </div>
 
-<!-- MOBILE DRAWER -->
-<div class="gh-mobile-overlay d-lg-none" id="mobileOverlay"></div>
-<aside class="gh-mobile-drawer d-lg-none" id="mobileDrawer">
-    <div class="p-3 border-bottom border-dark-subtle d-flex align-items-center justify-content-between">
-        <strong><i class="bi bi-hospital me-1"></i>LP2M Santé</strong>
-        <button class="btn btn-sm btn-link text-white" id="closeDrawer" type="button"><i class="bi bi-x-lg"></i></button>
-    </div>
-    <nav class="p-2">
-        <a class="gh-link" href="@Url.Action("Index", "Accueil")"><i class="bi bi-speedometer2"></i><span>Tableau de bord</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Patient")"><i class="bi bi-people"></i><span>Patients</span></a>
-        <a class="gh-link" href="@Url.Action("Nouveau", "Patient")"><i class="bi bi-person-plus"></i><span>Nouveau patient</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>Rendez-vous</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Consultations</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital-fill"></i><span>Hospitalisations</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Examen")"><i class="bi bi-droplet-half"></i><span>Examens</span></a>
-        <a class="gh-link" href="@Url.Action("Index", "Departement")"><i class="bi bi-diagram-3"></i><span>Services</span></a>
-        <hr class="border-secondary" />
-        <a class="gh-link text-danger" href="@Url.Action("Deconnexion", "Auth")"><i class="bi bi-box-arrow-right"></i><span>Déconnexion</span></a>
-    </nav>
-</aside>
+            <button type="button" class="lp2m-nav-section-toggle" data-nav-section="agenda" aria-expanded="true">
+                <span class="lp2m-nav-sep">Agenda &amp; file d'attente</span><i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="lp2m-nav-section" data-nav-section-content="agenda">
+                <a class="lp2m-link" asp-controller="RendezVous" asp-action="Index">
+                    <i class="bi bi-calendar3"></i><span>Rendez-vous</span>
+                </a>
+                <a class="lp2m-link" asp-controller="RendezVous" asp-action="Nouveau">
+                    <i class="bi bi-calendar-plus"></i><span>Nouveau RDV</span>
+                </a>
+                <a class="lp2m-link" asp-controller="RendezVous" asp-action="Calendrier">
+                    <i class="bi bi-calendar-week"></i><span>Calendrier</span>
+                </a>
+                <a class="lp2m-link" asp-controller="FileAttente" asp-action="Index">
+                    <i class="bi bi-person-lines-fill"></i><span>File d'attente</span>
+                </a>
+            </div>
 
-<!-- MAIN -->
-<main class="gh-main">
+            @if (estAdmin || estMedecin || estInfirmier || estReceptionniste || estLaborantin)
+            {
+                <button type="button" class="lp2m-nav-section-toggle" data-nav-section="soins" aria-expanded="true">
+                    <span class="lp2m-nav-sep">Soins</span><i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="lp2m-nav-section" data-nav-section-content="soins">
+                    <a class="lp2m-link" asp-controller="Consultation" asp-action="Index">
+                        <i class="bi bi-clipboard2-pulse"></i><span>Consultations</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Consultation" asp-action="Nouvelle">
+                        <i class="bi bi-camera-video"></i><span>Consultation / Téléconsult.</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Examen" asp-action="Index">
+                        <i class="bi bi-droplet-half"></i><span>Examens &amp; analyses</span>
+                    </a>
+                </div>
+            }
+
+            @if (estAdmin || estMedecin || estInfirmier)
+            {
+                <button type="button" class="lp2m-nav-section-toggle" data-nav-section="hospi" aria-expanded="true">
+                    <span class="lp2m-nav-sep">Hospitalisation</span><i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="lp2m-nav-section" data-nav-section-content="hospi">
+                    <a class="lp2m-link" asp-controller="Hospitalisation" asp-action="Index">
+                        <i class="bi bi-hospital-fill"></i><span>Patients hospitalisés</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Hospitalisation" asp-action="Nouvelle">
+                        <i class="bi bi-person-check"></i><span>Nouvelle admission</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Departement" asp-action="Index">
+                        <i class="bi bi-diagram-3"></i><span>Services &amp; lits</span>
+                    </a>
+                </div>
+            }
+
+            @if (estAdmin || estReceptionniste)
+            {
+                <button type="button" class="lp2m-nav-section-toggle" data-nav-section="finances" aria-expanded="true">
+                    <span class="lp2m-nav-sep">Finances &amp; analyses</span><i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="lp2m-nav-section" data-nav-section-content="finances">
+                    <a class="lp2m-link" asp-controller="Paiement" asp-action="Nouveau">
+                        <i class="bi bi-plus-circle"></i><span>Encaissement</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Paiement" asp-action="Index">
+                        <i class="bi bi-cash-stack"></i><span>Paiements</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Comptabilite" asp-action="Index">
+                        <i class="bi bi-journal-text"></i><span>Comptabilité</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Statistiques" asp-action="Index">
+                        <i class="bi bi-graph-up"></i><span>Statistiques</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Alerte" asp-action="Index">
+                        <i class="bi bi-bell"></i><span>Alertes</span>
+                        <span class="js-alerte-badge badge rounded-pill text-bg-danger ms-auto" hidden>0</span>
+                    </a>
+                </div>
+            }
+
+            @if (estAdmin)
+            {
+                <button type="button" class="lp2m-nav-section-toggle" data-nav-section="admin" aria-expanded="true">
+                    <span class="lp2m-nav-sep">Administration</span><i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="lp2m-nav-section" data-nav-section-content="admin">
+                    <a class="lp2m-link" asp-controller="Medecin" asp-action="Index">
+                        <i class="bi bi-person-badge"></i><span>Médecins</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Mail" asp-action="Composer">
+                        <i class="bi bi-envelope"></i><span>Envoi mail</span>
+                    </a>
+                    <a class="lp2m-link" asp-controller="Mail" asp-action="Journal">
+                        <i class="bi bi-envelope-check"></i><span>Journal des mails</span>
+                    </a>
+                </div>
+            }
+
+            @if (estSuperAdmin)
+            {
+                <button type="button" class="lp2m-nav-section-toggle" data-nav-section="superadmin" aria-expanded="true">
+                    <span class="lp2m-nav-sep">Super-admin</span><i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="lp2m-nav-section" data-nav-section-content="superadmin">
+                    <a class="lp2m-link" asp-controller="Utilisateur" asp-action="Index">
+                        <i class="bi bi-people"></i><span>Utilisateurs</span>
+                    </a>
+                </div>
+            }
+
+        </nav>
+    </aside>
+}
+
+<main class="lp2m-main container-fluid">
     @if (TempData["Succès"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show gh-alert mx-3 mt-3" role="alert">
+        <div class="alert alert-success alert-dismissible fade show mt-2">
             <i class="bi bi-check-circle me-2"></i>@TempData["Succès"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["Erreur"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show gh-alert mx-3 mt-3" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show mt-2">
             <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Erreur"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["Avertissement"] != null)
     {
-        <div class="alert alert-warning alert-dismissible fade show gh-alert mx-3 mt-3" role="alert">
+        <div class="alert alert-warning alert-dismissible fade show mt-2">
             <i class="bi bi-exclamation-circle me-2"></i>@TempData["Avertissement"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
     @RenderBody()
 </main>
 
-<nav class="gh-bottom-nav d-lg-none" aria-label="Navigation mobile rapide">
-    <a class="@(ctrl == "Accueil" ? "active" : "")" href="@Url.Action("Index", "Accueil")"><i class="bi bi-house-door"></i><span>Accueil</span></a>
-    <a class="@(ctrl == "Patient" ? "active" : "")" href="@Url.Action("Index", "Patient")"><i class="bi bi-people"></i><span>Patients</span></a>
-    <a class="@(ctrl == "RendezVous" ? "active" : "")" href="@Url.Action("Index", "RendezVous")"><i class="bi bi-calendar3"></i><span>RDV</span></a>
-    <a class="@(ctrl == "Consultation" ? "active" : "")" href="@Url.Action("Index", "Consultation")"><i class="bi bi-clipboard2-pulse"></i><span>Soins</span></a>
-    <a class="@(ctrl == "Hospitalisation" ? "active" : "")" href="@Url.Action("Index", "Hospitalisation")"><i class="bi bi-hospital"></i><span>Hosp.</span></a>
-</nav>
+@if (connecte)
+{
+    <nav class="mobile-bottom-nav d-lg-none no-print">
+        <a asp-controller="Accueil" asp-action="Index">
+            <i class="bi bi-speedometer2"></i><span>Accueil</span>
+        </a>
+        <a asp-controller="Patient" asp-action="Index">
+            <i class="bi bi-people"></i><span>Patients</span>
+        </a>
+        <a asp-controller="FileAttente" asp-action="Index" class="mobile-nav-pos">
+            <i class="bi bi-person-lines-fill"></i><span>File</span>
+        </a>
+        <a asp-controller="RendezVous" asp-action="Index">
+            <i class="bi bi-calendar3"></i><span>RDV</span>
+        </a>
+        <a asp-controller="Paiement" asp-action="Index">
+            <i class="bi bi-cash-stack"></i><span>Caisse</span>
+        </a>
+    </nav>
+}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="@Url.Content("~/js/site.js")" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@if (connecte)
+{
+    <script>
+    (function () {
+        var segs = location.pathname.split('/').filter(Boolean);
+
+        document.querySelectorAll('.lp2m-link').forEach(function (a) {
+            var parts = (a.getAttribute('href') || '').split('/').filter(Boolean);
+            var ctrl = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || null);
+            if (ctrl && segs.indexOf(ctrl) !== -1) a.classList.add('actif');
+        });
+
+        var storageKey = 'gh.sidebar.collapsed';
+        var collapsed = [];
+        try { collapsed = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch(e) {}
+
+        function setCollapsed(name, val) {
+            var content = document.querySelector('[data-nav-section-content="' + name + '"]');
+            var btn = document.querySelector('[data-nav-section="' + name + '"]');
+            if (!content || !btn) return;
+            content.classList.toggle('is-collapsed', val);
+            btn.classList.toggle('is-collapsed', val);
+            btn.setAttribute('aria-expanded', val ? 'false' : 'true');
+        }
+
+        document.querySelectorAll('[data-nav-section]').forEach(function (btn) {
+            var name = btn.getAttribute('data-nav-section');
+            var content = document.querySelector('[data-nav-section-content="' + name + '"]');
+            if (!content) return;
+            var hasActive = content.querySelector('.lp2m-link.actif');
+            setCollapsed(name, collapsed.indexOf(name) !== -1 && !hasActive);
+            btn.addEventListener('click', function () {
+                var isCollapsed = !content.classList.contains('is-collapsed');
+                setCollapsed(name, isCollapsed);
+                var list = [];
+                document.querySelectorAll('[data-nav-section].is-collapsed').forEach(function (b) {
+                    list.push(b.getAttribute('data-nav-section'));
+                });
+                localStorage.setItem(storageKey, JSON.stringify(list));
+            });
+        });
+
+        document.querySelectorAll('.lp2m-link, .mobile-bottom-nav a').forEach(function (a) {
+            a.addEventListener('click', function () { document.body.classList.remove('sidebar-open'); });
+        });
+
+        var badges = document.querySelectorAll('.js-alerte-badge');
+        var topBadge = document.getElementById('lp2m-alertes-badge');
+        if (badges.length || topBadge) {
+            function majAlertes() {
+                fetch('/Alerte/Badge', { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (d) {
+                        if (!d) return;
+                        var n = Number(d.count) || 0;
+                        badges.forEach(function (b) { b.textContent = n > 99 ? '99+' : n; b.hidden = n === 0; });
+                        if (topBadge) { topBadge.textContent = n > 99 ? '99+' : n; topBadge.hidden = n === 0; }
+                    }).catch(function () {});
+            }
+            majAlertes();
+            setInterval(majAlertes, 30000);
+        }
+
+        document.querySelectorAll('.mobile-bottom-nav a').forEach(function (a) {
+            var parts = (a.getAttribute('href') || '').split('/').filter(Boolean);
+            var ctrl = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || null);
+            if (ctrl && segs.indexOf(ctrl) !== -1) a.classList.add('actif');
+        });
+    })();
+    </script>
+}
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

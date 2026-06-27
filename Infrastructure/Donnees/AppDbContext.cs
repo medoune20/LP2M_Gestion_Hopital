@@ -20,6 +20,11 @@ public class AppDbContext : DbContext
     public DbSet<ResultatExamen> ResultatsExamen => Set<ResultatExamen>();
     public DbSet<LitHospitalisation> Lits => Set<LitHospitalisation>();
     public DbSet<Hospitalisation> Hospitalisations => Set<Hospitalisation>();
+    public DbSet<FileDAttente> FileAttente => Set<FileDAttente>();
+    public DbSet<Paiement> Paiements => Set<Paiement>();
+    public DbSet<EcritureComptable> EcrituresComptables => Set<EcritureComptable>();
+    public DbSet<Alerte> Alertes => Set<Alerte>();
+    public DbSet<JournalMail> JournalMails => Set<JournalMail>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -113,7 +118,36 @@ public class AppDbContext : DbContext
             .HasForeignKey(h => h.LitId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Decimal precision
+        mb.Entity<FileDAttente>()
+            .HasOne(f => f.Patient)
+            .WithMany()
+            .HasForeignKey(f => f.PatientId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        mb.Entity<FileDAttente>()
+            .HasOne(f => f.Medecin)
+            .WithMany()
+            .HasForeignKey(f => f.MedecinId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        mb.Entity<Paiement>()
+            .HasOne(p => p.Patient)
+            .WithMany()
+            .HasForeignKey(p => p.PatientId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        mb.Entity<Paiement>()
+            .HasOne(p => p.Consultation)
+            .WithMany()
+            .HasForeignKey(p => p.ConsultationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        mb.Entity<Paiement>()
+            .HasOne(p => p.Hospitalisation)
+            .WithMany()
+            .HasForeignKey(p => p.HospitalisationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         foreach (var prop in mb.Model.GetEntityTypes()
             .SelectMany(e => e.GetProperties())
             .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))

@@ -1,0 +1,196 @@
+@{
+    ViewData["Title"] = "Statistiques";
+    int totalPatients = ViewBag.TotalPatients ?? 0;
+    int nouveauxMois = ViewBag.NouveauxMois ?? 0;
+    int consultMois = ViewBag.ConsultationsMois ?? 0;
+    decimal revenuMois = ViewBag.RevenuMois ?? 0;
+    int hospitalisés = ViewBag.PatientsHospitalisés ?? 0;
+    double taux = ViewBag.TauxOccupation ?? 0;
+    int nbMasc = ViewBag.NbMasculin ?? 0;
+    int nbFem = ViewBag.NbFéminin ?? 0;
+    var labMois = (ViewBag.LabMois as List<string> ?? new()).Select(x => $"\"{x}\"");
+    var dataConsult = (ViewBag.DataConsult as List<int> ?? new());
+    var dataRevenu = (ViewBag.DataRevenu as List<decimal> ?? new());
+    var topMedecins = ViewBag.TopMedecins as System.Collections.IEnumerable;
+    var statsPaiement = ViewBag.StatsPaiement as System.Collections.IEnumerable;
+}
+
+<div class="mb-4">
+    <h1 class="fw-bold mb-1"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Statistiques</h1>
+    <p class="text-muted mb-0">Vue d'ensemble de l'activité médicale</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Patients actifs</div>
+                <div class="metric-value text-primary">@totalPatients</div>
+                <i class="bi bi-people metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Nouveaux/mois</div>
+                <div class="metric-value text-info">@nouveauxMois</div>
+                <i class="bi bi-person-plus metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Consult./mois</div>
+                <div class="metric-value text-success">@consultMois</div>
+                <i class="bi bi-clipboard2-pulse metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Revenu/mois</div>
+                <div class="metric-value text-warning" style="font-size:1.1rem">@revenuMois.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.7rem">FCFA</div>
+                <i class="bi bi-cash metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Hospitalisés</div>
+                <div class="metric-value text-danger">@hospitalisés</div>
+                <i class="bi bi-hospital metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card metric-card text-center">
+            <div class="card-body p-3">
+                <div class="metric-label">Taux occupation</div>
+                <div class="metric-value text-secondary">@taux.ToString("0")<small>%</small></div>
+                <i class="bi bi-bed metric-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Consultations & revenus — 12 derniers mois</h6>
+                <canvas id="chartActivite" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Répartition patients par sexe</h6>
+                <canvas id="chartSexe" height="180"></canvas>
+                <div class="d-flex justify-content-around mt-3 text-muted" style="font-size:.85rem">
+                    <span><span class="badge text-bg-primary me-1">M</span>@nbMasc</span>
+                    <span><span class="badge text-bg-danger me-1">F</span>@nbFem</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-trophy me-1 text-warning"></i>Top 5 médecins (consultations)</h6>
+                @if (topMedecins != null)
+                {
+                    <div class="list-group list-group-flush">
+                    @{
+                        int rang = 1;
+                        foreach (dynamic med in topMedecins)
+                        {
+                            <div class="list-group-item px-0 d-flex align-items-center gap-3">
+                                <span class="fw-bold text-muted" style="width:24px;text-align:right">@rang</span>
+                                <i class="bi bi-person-circle text-primary fs-5"></i>
+                                <span class="flex-grow-1">@med.NomComplet</span>
+                                <span class="badge text-bg-primary rounded-pill">@med.Nb</span>
+                            </div>
+                            rang++;
+                        }
+                    }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Aucune donnée.</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-1 text-info"></i>Modes de paiement</h6>
+                <canvas id="chartPaiement" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+    var labMois = [@Html.Raw(string.Join(",", labMois))];
+    var dataC = [@string.Join(",", dataConsult)];
+    var dataR = [@string.Join(",", dataRevenu.Select(v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)))];
+
+    var ctx1 = document.getElementById('chartActivite');
+    if(ctx1) new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: labMois,
+            datasets: [
+                { label: 'Consultations', data: dataC, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,.1)', tension:.3, yAxisID:'y' },
+                { label: 'Revenus (FCFA)', data: dataR, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', tension:.3, yAxisID:'y2' }
+            ]
+        },
+        options: { responsive:true, plugins:{legend:{position:'bottom'}}, scales:{
+            y:{ beginAtZero:true, position:'left' },
+            y2:{ beginAtZero:true, position:'right', grid:{ drawOnChartArea:false } }
+        }}
+    });
+
+    var ctx2 = document.getElementById('chartSexe');
+    if(ctx2) new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Masculin','Féminin'],
+            datasets: [{ data: [@nbMasc, @nbFem], backgroundColor: ['#0ea5e9','#f43f5e'] }]
+        },
+        options: { responsive:true, plugins:{ legend:{ display:false } } }
+    });
+
+    @if (statsPaiement != null)
+    {
+        var items = new List<dynamic>();
+        foreach (dynamic s in statsPaiement) items.Add(s);
+        <text>
+    var ctx3 = document.getElementById('chartPaiement');
+    if(ctx3) new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+            labels: [@Html.Raw(string.Join(",", items.Select(i => $"\"{i.Mode}\"")))],
+            datasets: [{ data: [@string.Join(",", items.Select(i => (object)i.Total))], backgroundColor: ['#10b981','#0ea5e9','#8b5cf6','#f59e0b','#6b7280'] }]
+        },
+        options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+        </text>
+    }
+})();
+</script>
+}

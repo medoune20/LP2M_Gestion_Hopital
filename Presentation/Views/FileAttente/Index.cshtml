@@ -1,0 +1,225 @@
+@model List<GestionHopital.Domaine.Models.FileDAttente>
+@{
+    ViewData["Title"] = "File d'attente";
+    var medecins = ViewBag.Medecins as List<GestionHopital.Domaine.Models.Medecin> ?? new();
+    int enAttente = ViewBag.EnAttente ?? 0;
+    int enConsult = ViewBag.EnConsultation ?? 0;
+    int termine = ViewBag.Terminé ?? 0;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-person-lines-fill me-2 text-primary"></i>File d'attente</h1>
+        <p class="text-muted mb-0">@DateTime.Today.ToString("dddd dd MMMM yyyy")</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAjouter">
+        <i class="bi bi-plus-circle me-1"></i> Ajouter patient
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">En attente</div>
+                <div class="metric-value text-warning">@enAttente</div>
+                <i class="bi bi-clock metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">En consultation</div>
+                <div class="metric-value text-info">@enConsult</div>
+                <i class="bi bi-clipboard2-pulse metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Terminés</div>
+                <div class="metric-value text-success">@termine</div>
+                <i class="bi bi-check-circle metric-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-person-lines-fill fs-1 opacity-25 d-block mb-2"></i>
+                File vide pour aujourd'hui. Ajoutez un premier patient.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Motif</th>
+                            <th>Médecin</th>
+                            <th>Arrivée</th>
+                            <th>Attente</th>
+                            <th>Priorité</th>
+                            <th>Statut</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var f in Model)
+                    {
+                        <tr class="@(f.Statut == StatutFileDAttente.Terminé || f.Statut == StatutFileDAttente.Absent ? "text-muted" : "")">
+                            <td><span class="file-numero">@f.NumeroFile</span></td>
+                            <td>
+                                <span class="fw-semibold">@f.NomAffiche</span>
+                                @if (f.Patient != null)
+                                {
+                                    <br><small class="text-muted">@f.Patient.NuméroDossier</small>
+                                }
+                            </td>
+                            <td class="text-truncate" style="max-width:160px">@f.MotifVisite</td>
+                            <td>@(f.Medecin?.NomComplet ?? "—")</td>
+                            <td>@f.DateArrivee.ToString("HH:mm")</td>
+                            <td>
+                                @if (f.Statut == StatutFileDAttente.EnAttente || f.Statut == StatutFileDAttente.Appelé)
+                                {
+                                    <span class="text-warning fw-bold">@f.AttenteFormatée</span>
+                                }
+                                else { <span>@f.AttenteFormatée</span> }
+                            </td>
+                            <td>
+                                @if (f.Priorite == PrioritéFile.Critique)
+                                { <span class="badge text-bg-danger">Critique</span> }
+                                else if (f.Priorite == PrioritéFile.Urgente)
+                                { <span class="badge text-bg-warning">Urgent</span> }
+                                else { <span class="badge text-bg-secondary">Normal</span> }
+                            </td>
+                            <td><span class="badge text-bg-@f.StatutCssClass">@f.Statut</span></td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                @if (f.Statut == StatutFileDAttente.EnAttente)
+                                {
+                                    <form method="post" asp-action="Appeler" asp-route-id="@f.Id">@Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-primary" title="Appeler"><i class="bi bi-megaphone"></i></button>
+                                    </form>
+                                }
+                                @if (f.Statut == StatutFileDAttente.Appelé)
+                                {
+                                    <form method="post" asp-action="EnConsultation" asp-route-id="@f.Id">@Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-info" title="En consultation"><i class="bi bi-clipboard2-pulse"></i></button>
+                                    </form>
+                                }
+                                @if (f.Statut == StatutFileDAttente.EnConsultation || f.Statut == StatutFileDAttente.Appelé)
+                                {
+                                    <form method="post" asp-action="Terminer" asp-route-id="@f.Id">@Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-success" title="Terminer"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                    <form method="post" asp-action="Absent" asp-route-id="@f.Id">@Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger" title="Absent"><i class="bi bi-person-dash"></i></button>
+                                    </form>
+                                }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Ajouter -->
+<div class="modal fade" id="modalAjouter" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="Ajouter">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Ajouter à la file</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Rechercher un patient enregistré</label>
+                        <input type="text" id="recherchePatient" class="form-control" placeholder="Nom, prénom ou n° dossier…" autocomplete="off">
+                        <div id="suggestionsPatient" class="list-group mt-1"></div>
+                        <input type="hidden" name="patientId" id="patientIdSelecete">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ou nom du visiteur (sans dossier)</label>
+                        <input type="text" name="nomVisiteur" class="form-control" placeholder="Nom complet">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Motif de visite</label>
+                        <input type="text" name="motifVisite" class="form-control" required placeholder="Ex: consultation générale, urgence…">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-7">
+                            <label class="form-label fw-semibold">Médecin</label>
+                            <select name="medecinId" class="form-select">
+                                <option value="">— Non assigné —</option>
+                                @foreach (var m in medecins)
+                                {
+                                    <option value="@m.Id">@m.NomComplet</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label fw-semibold">Priorité</label>
+                            <select name="priorite" class="form-select">
+                                <option value="0">Normale</option>
+                                <option value="1">Urgente</option>
+                                <option value="2">Critique</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+var inputP = document.getElementById('recherchePatient');
+var div = document.getElementById('suggestionsPatient');
+var hiddenId = document.getElementById('patientIdSelecete');
+if (inputP) {
+    inputP.addEventListener('input', function () {
+        var q = this.value.trim();
+        if (q.length < 2) { div.innerHTML = ''; return; }
+        fetch('/FileAttente/RechercherPatient?q=' + encodeURIComponent(q))
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                div.innerHTML = '';
+                data.forEach(function(p) {
+                    var a = document.createElement('a');
+                    a.className = 'list-group-item list-group-item-action';
+                    a.href = '#';
+                    a.textContent = p.nom + ' (' + p.dossier + ')';
+                    a.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        inputP.value = p.nom;
+                        hiddenId.value = p.id;
+                        div.innerHTML = '';
+                    });
+                    div.appendChild(a);
+                });
+            });
+    });
+}
+</script>
+}

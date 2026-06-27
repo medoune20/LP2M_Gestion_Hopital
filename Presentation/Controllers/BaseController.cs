@@ -18,15 +18,14 @@ public class BaseController : Controller
     protected RoleUtilisateur Role => (RoleUtilisateur)(HttpContext.Session.GetInt32("Role") ?? 0);
     protected bool EstConnecté => UtilisateurId > 0;
     protected bool EstAdmin => Role is RoleUtilisateur.SuperAdmin or RoleUtilisateur.Administrateur;
+    protected bool EstSuperAdmin => Role == RoleUtilisateur.SuperAdmin;
     protected bool EstMédecin => Role == RoleUtilisateur.Médecin;
     protected int? MedecinId => HttpContext.Session.GetInt32("MedecinId");
 
     public override void OnActionExecuting(ActionExecutingContext ctx)
     {
         base.OnActionExecuting(ctx);
-        var action = ctx.ActionDescriptor.RouteValues["action"] ?? "";
         var ctrl = ctx.ActionDescriptor.RouteValues["controller"] ?? "";
-
         if (ctrl == "Auth") return;
 
         if (!EstConnecté)
@@ -34,10 +33,13 @@ public class BaseController : Controller
             ctx.Result = RedirectToAction("Connexion", "Auth");
             return;
         }
+
         ViewBag.UtilisateurNom = UtilisateurNom;
         ViewBag.UtilisateurLogin = UtilisateurLogin;
         ViewBag.Role = Role;
         ViewBag.EstAdmin = EstAdmin;
+        ViewBag.EstSuperAdmin = EstSuperAdmin;
+        ViewBag.CouleurHopital = HttpContext.Session.GetString("CouleurHopital") ?? "#0ea5e9";
     }
 
     protected void Succès(string msg) => TempData["Succès"] = msg;

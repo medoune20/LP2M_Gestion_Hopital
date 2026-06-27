@@ -1,0 +1,168 @@
+@model List<GestionHopital.Domaine.Models.Paiement>
+@{
+    ViewData["Title"] = "Paiements";
+    decimal totalJour = ViewBag.TotalJour ?? 0;
+    decimal totalMois = ViewBag.TotalMois ?? 0;
+    int enAttente = ViewBag.EnAttente ?? 0;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-cash-coin me-2 text-primary"></i>Paiements</h1>
+        <p class="text-muted mb-0">@DateTime.Today.ToString("dddd dd MMMM yyyy")</p>
+    </div>
+    <a href="/Paiement/Nouveau" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Nouveau paiement
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Recettes du jour</div>
+                <div class="metric-value text-success">@totalJour.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.75rem">FCFA</div>
+                <i class="bi bi-cash metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Recettes du mois</div>
+                <div class="metric-value text-primary">@totalMois.ToString("N0")</div>
+                <div class="text-muted" style="font-size:.75rem">FCFA</div>
+                <i class="bi bi-graph-up metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">En attente</div>
+                <div class="metric-value text-warning">@enAttente</div>
+                <i class="bi bi-clock metric-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Statut</label>
+                <select name="statut" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    <option value="EnAttente">En attente</option>
+                    <option value="Payé">Payé</option>
+                    <option value="Partiel">Partiel</option>
+                    <option value="Annulé">Annulé</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Mode</label>
+                <select name="mode" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    <option value="Especes">Espèces</option>
+                    <option value="MobileMoney">Mobile Money</option>
+                    <option value="CarteBancaire">Carte bancaire</option>
+                    <option value="Cheque">Chèque</option>
+                    <option value="Gratuit">Gratuit</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Du</label>
+                <input type="date" name="du" class="form-control form-control-sm">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem">Au</label>
+                <input type="date" name="au" class="form-control form-control-sm">
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-1">
+                <button class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-search me-1"></i>Filtrer</button>
+                <a href="/Paiement" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-cash-coin fs-1 opacity-25 d-block mb-2"></i>
+                Aucun paiement trouvé.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Patient</th>
+                            <th>Prestation</th>
+                            <th>Montant</th>
+                            <th>Mode</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td><code class="text-primary">@p.Reference</code></td>
+                            <td>
+                                <span class="fw-semibold">@(p.Patient?.NomComplet ?? "—")</span>
+                            </td>
+                            <td class="text-truncate" style="max-width:160px">@p.LibellePrestation</td>
+                            <td class="fw-bold">@p.Montant.ToString("N0") <small class="text-muted fw-normal">FCFA</small></td>
+                            <td>
+                                @if (p.ModePaiement == ModePaiement.Especes)
+                                { <span class="badge text-bg-success">Espèces</span> }
+                                else if (p.ModePaiement == ModePaiement.MobileMoney)
+                                { <span class="badge text-bg-info">Mobile Money</span> }
+                                else if (p.ModePaiement == ModePaiement.CarteBancaire)
+                                { <span class="badge text-bg-primary">Carte</span> }
+                                else if (p.ModePaiement == ModePaiement.Gratuit)
+                                { <span class="badge text-bg-secondary">Gratuit</span> }
+                                else
+                                { <span class="badge text-bg-secondary">@p.ModePaiement</span> }
+                            </td>
+                            <td>@p.DatePaiement.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (p.Statut == StatutPaiement.Payé)
+                                { <span class="badge text-bg-success">Payé</span> }
+                                else if (p.Statut == StatutPaiement.EnAttente)
+                                { <span class="badge text-bg-warning">En attente</span> }
+                                else if (p.Statut == StatutPaiement.Partiel)
+                                { <span class="badge text-bg-info">Partiel</span> }
+                                else
+                                { <span class="badge text-bg-danger">Annulé</span> }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="/Paiement/Details/@p.Id" class="btn btn-sm btn-outline-secondary" title="Détails"><i class="bi bi-eye"></i></a>
+                                    @if (p.Statut == StatutPaiement.EnAttente)
+                                    {
+                                        <form method="post" asp-action="Annuler" asp-route-id="@p.Id">@Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-danger" title="Annuler"><i class="bi bi-x-circle"></i></button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

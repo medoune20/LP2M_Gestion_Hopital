@@ -99,3 +99,57 @@ public enum StatutEtape
     EnCours = 1,
     Terminé = 2
 }
+
+public enum StatutFileDAttente
+{
+    EnAttente = 0,
+    Appelé = 1,
+    EnConsultation = 2,
+    Terminé = 3,
+    Absent = 4
+}
+
+public enum PrioritéFile
+{
+    Normale = 0,
+    Urgente = 1,
+    Critique = 2
+}
+
+public enum ModePaiement
+{
+    Especes = 0,
+    MobileMoney = 1,
+    CarteBancaire = 2,
+    Cheque = 3,
+    Gratuit = 4
+}
+
+public enum StatutPaiement
+{
+    EnAttente = 0,
+    Payé = 1,
+    Partiel = 2,
+    Annulé = 3
+}
+
+public enum NiveauAlerte
+{
+    Info = 0,
+    Avertissement = 1,
+    Critique = 2
+}
+
+public enum StatutAlerte
+{
+    Active = 0,
+    Lue = 1,
+    Résolue = 2
+}
+
+public enum StatutMail
+{
+    EnAttente = 0,
+    Envoyé = 1,
+    Echec = 2
+}

@@ -14,27 +14,20 @@ public class AuthController : Controller
     {
         if (HttpContext.Session.GetInt32("UtilisateurId") > 0)
             return RedirectToAction("Index", "Accueil");
-
         ViewBag.Retour = retour;
         return View();
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Connexion(string login, string motDePasse, string? retour)
     {
-        login = (login ?? string.Empty).Trim();
-        motDePasse ??= string.Empty;
-
         var hash = HashMdp(motDePasse);
         var user = await _db.Utilisateurs.FirstOrDefaultAsync(u => u.Login == login && u.MotDePasse == hash && u.Actif);
         if (user == null)
         {
             ViewBag.Erreur = "Identifiants incorrects.";
-            ViewBag.Retour = retour;
             return View();
         }
-
         user.DernièreConnexion = DateTime.Now;
         await _db.SaveChangesAsync();
 
@@ -45,22 +38,14 @@ public class AuthController : Controller
         if (user.MedecinId.HasValue)
             HttpContext.Session.SetInt32("MedecinId", user.MedecinId.Value);
 
-        // Important en hébergement sous /hopital : ne jamais rediriger vers une URL absolue
-        // de type /Accueil, sinon le navigateur sort du préfixe LP2M et iOS Safari peut
-        // interpréter la réponse comme un fichier à télécharger.
-        if (!string.IsNullOrWhiteSpace(retour) && Url.IsLocalUrl(retour) && !retour.Contains("Connexion", StringComparison.OrdinalIgnoreCase))
-        {
-            var chemin = retour.StartsWith('/') ? retour[1..] : retour;
-            return LocalRedirect(Url.Content("~/" + chemin));
-        }
+        var etab = await _db.Etablissements.FirstOrDefaultAsync();
+        if (etab != null)
+            HttpContext.Session.SetString("CouleurHopital", etab.Couleur ?? "#0ea5e9");
 
-        return RedirectToAction("Index", "Accueil");
+        return Redirect(retour ?? "/Accueil");
     }
 
-    [HttpGet]
-    public IActionResult Déconnexion() => Deconnexion();
-
-    [HttpGet]
+    [HttpGet, HttpPost]
     public IActionResult Deconnexion()
     {
         HttpContext.Session.Clear();

@@ -1,0 +1,89 @@
+@model List<GestionHopital.Domaine.Models.Alerte>
+@{
+    ViewData["Title"] = "Alertes";
+    int actives = Model.Count(a => a.Statut == StatutAlerte.Active);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-bell me-2 text-primary"></i>Alertes
+            @if (actives > 0)
+            {
+                <span class="badge text-bg-danger ms-1">@actives</span>
+            }
+        </h1>
+        <p class="text-muted mb-0">Notifications et alertes système</p>
+    </div>
+    <form method="post" asp-action="GenererAlertes">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-arrow-clockwise me-1"></i> Actualiser les alertes
+        </button>
+    </form>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-bell-slash fs-1 opacity-25 d-block mb-2"></i>
+            Aucune alerte active. Tout va bien !
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-3">
+    @foreach (var a in Model)
+    {
+        var bgClass = a.Niveau switch {
+            NiveauAlerte.Critique => "border-danger bg-danger bg-opacity-10",
+            NiveauAlerte.Avertissement => "border-warning bg-warning bg-opacity-10",
+            _ => "border-info bg-info bg-opacity-10"
+        };
+        var textClass = a.Niveau switch {
+            NiveauAlerte.Critique => "text-danger",
+            NiveauAlerte.Avertissement => "text-warning",
+            _ => "text-info"
+        };
+        <div class="card border @bgClass @(a.Statut != StatutAlerte.Active ? "opacity-50" : "")">
+            <div class="card-body d-flex align-items-start gap-3">
+                <i class="bi @a.NiveauIcone fs-3 @textClass flex-shrink-0 mt-1"></i>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">@a.Message</div>
+                    <div class="text-muted" style="font-size:.82rem">@a.DateCreation.ToString("dd/MM/yyyy HH:mm")</div>
+                    @if (!string.IsNullOrEmpty(a.Lien))
+                    {
+                        <a href="@a.Lien" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="bi bi-arrow-right me-1"></i>Voir détails
+                        </a>
+                    }
+                </div>
+                <div class="d-flex flex-column gap-1 flex-shrink-0">
+                    <span class="badge @(a.Statut == StatutAlerte.Active ? "text-bg-danger" : a.Statut == StatutAlerte.Lue ? "text-bg-secondary" : "text-bg-success")">
+                        @a.Statut
+                    </span>
+                    @if (a.Statut == StatutAlerte.Active)
+                    {
+                        <form method="post" asp-action="MarquerLue" asp-route-id="@a.Id">@Html.AntiForgeryToken()
+                            <button class="btn btn-xs btn-outline-secondary" style="font-size:.75rem;padding:.2rem .5rem" title="Marquer comme lue">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </form>
+                        <form method="post" asp-action="Resoudre" asp-route-id="@a.Id">@Html.AntiForgeryToken()
+                            <button class="btn btn-xs btn-outline-success" style="font-size:.75rem;padding:.2rem .5rem" title="Résoudre">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                        </form>
+                    }
+                    <form method="post" asp-action="Supprimer" asp-route-id="@a.Id">@Html.AntiForgeryToken()
+                        <button class="btn btn-xs btn-outline-danger" style="font-size:.75rem;padding:.2rem .5rem" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+}

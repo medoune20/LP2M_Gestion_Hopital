@@ -6,219 +6,215 @@
     var rdvJour = ViewBag.RDVJour as List<RendezVous> ?? new();
     var hosps = ViewBag.Hospitalisations as List<Hospitalisation> ?? new();
     var depts = ViewBag.Departements as List<Departement> ?? new();
+    string nomHopital = ViewBag.NomHopital ?? "Hôpital";
 }
 
-<div class="gh-page-header">
-    <div class="gh-page-header-inner">
-        <div>
-            <h1 class="gh-page-title"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
-            <p class="gh-page-subtitle">@DateTime.Now.ToString("dddd dd MMMM yyyy")</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2 text-primary"></i>Tableau de bord</h1>
+        <p class="text-muted mb-0">@nomHopital — @DateTime.Now.ToString("dddd dd MMMM yyyy") &nbsp;<span id="gh-clock" class="fw-semibold"></span></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Patient/Nouveau" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nouveau patient</a>
+        <a href="/RendezVous/Nouveau" class="btn btn-outline-primary d-none d-md-inline-flex"><i class="bi bi-calendar-plus me-1"></i>Nouveau RDV</a>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Total patients</div>
+                <div class="metric-value text-primary">@ViewBag.TotalPatients</div>
+                <i class="bi bi-people metric-icon"></i>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="@Url.Action("Nouveau", "Patient")" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nouveau patient</a>
-            <a href="@Url.Action("Nouveau", "RendezVous")" class="btn btn-outline-primary"><i class="bi bi-calendar-plus me-1"></i>Nouveau RDV</a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Hospitalisés</div>
+                <div class="metric-value text-warning">@ViewBag.PatientsHospitalisés</div>
+                <i class="bi bi-hospital-fill metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">RDV aujourd'hui</div>
+                <div class="metric-value text-info">@ViewBag.RDVAujourdhui</div>
+                <i class="bi bi-calendar-check metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Consultations</div>
+                <div class="metric-value text-success">@ViewBag.ConsultationsAujourdhui</div>
+                <i class="bi bi-clipboard2-pulse metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Lits libres</div>
+                <div class="metric-value text-secondary">@ViewBag.LitsLibres</div>
+                <i class="bi bi-bed metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card metric-card text-center">
+            <div class="card-body">
+                <div class="metric-label">Médecins actifs</div>
+                <div class="metric-value text-primary">@ViewBag.TotalMédecins</div>
+                <i class="bi bi-person-badge metric-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <a href="/Examen" class="card metric-card text-center text-decoration-none">
+            <div class="card-body">
+                <div class="metric-label">Examens en attente</div>
+                <div class="metric-value text-danger">@ViewBag.ExamensPending</div>
+                <i class="bi bi-droplet-half metric-icon"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <a href="/FileAttente" class="card metric-card text-center text-decoration-none">
+            <div class="card-body">
+                <div class="metric-label">File d'attente</div>
+                <div class="metric-value text-info"><i class="bi bi-arrow-right-circle"></i></div>
+                <i class="bi bi-person-lines-fill metric-icon"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Graphique activité -->
+    <div class="col-12 col-lg-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Activité des 7 derniers jours</h6>
+                <canvas id="chartActivite" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Capacité services -->
+    <div class="col-12 col-lg-4">
+        <div class="card h-100">
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center p-3 pb-0">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2"></i>Services</h6>
+                    <a href="/Departement" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                @foreach (var dept in depts.Take(6))
+                {
+                    var libre = dept.LitsLibres;
+                    var total = dept.Lits.Count;
+                    var pct = total > 0 ? (int)((double)(total - libre) / total * 100) : 0;
+                    var couleur = pct >= 90 ? "danger" : pct >= 70 ? "warning" : "success";
+                    <div class="px-3 py-2 border-bottom">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold" style="font-size:.88rem">@dept.Nom</span>
+                            <small class="text-muted">@libre/@total libres</small>
+                        </div>
+                        <div class="progress" style="height:6px;border-radius:3px">
+                            <div class="progress-bar bg-@couleur" style="width:@pct%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
 
-<div class="gh-content">
-    <!-- KPIs -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-blue">
-                <div class="gh-metric-icon"><i class="bi bi-people"></i></div>
-                <div class="gh-metric-value">@ViewBag.TotalPatients</div>
-                <div class="gh-metric-label">Total patients</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-orange">
-                <div class="gh-metric-icon"><i class="bi bi-hospital-fill"></i></div>
-                <div class="gh-metric-value">@ViewBag.PatientsHospitalisés</div>
-                <div class="gh-metric-label">Hospitalisés</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-green">
-                <div class="gh-metric-icon"><i class="bi bi-calendar-check"></i></div>
-                <div class="gh-metric-value">@ViewBag.RDVAujourdhui</div>
-                <div class="gh-metric-label">RDV aujourd'hui</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-teal">
-                <div class="gh-metric-icon"><i class="bi bi-clipboard2-pulse"></i></div>
-                <div class="gh-metric-value">@ViewBag.ConsultationsAujourdhui</div>
-                <div class="gh-metric-label">Consultations du jour</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-purple">
-                <div class="gh-metric-icon"><i class="bi bi-bed"></i></div>
-                <div class="gh-metric-value">@ViewBag.LitsLibres</div>
-                <div class="gh-metric-label">Lits libres</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="gh-metric-card gh-metric-indigo">
-                <div class="gh-metric-icon"><i class="bi bi-person-badge"></i></div>
-                <div class="gh-metric-value">@ViewBag.TotalMédecins</div>
-                <div class="gh-metric-label">Médecins actifs</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <a href="@Url.Action("Index", "Examen")" class="gh-metric-card gh-metric-red text-decoration-none">
-                <div class="gh-metric-icon"><i class="bi bi-droplet-half"></i></div>
-                <div class="gh-metric-value">@ViewBag.ExamensPending</div>
-                <div class="gh-metric-label">Examens en attente</div>
-            </a>
-        </div>
-        <div class="col-6 col-lg-3">
-            <a href="@Url.Action("Nouveau", "RendezVous")" class="gh-metric-card gh-metric-cyan text-decoration-none">
-                <div class="gh-metric-icon"><i class="bi bi-plus-circle"></i></div>
-                <div class="gh-metric-value"><i class="bi bi-arrow-right-circle"></i></div>
-                <div class="gh-metric-label">Planifier un RDV</div>
-            </a>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <!-- Chart activité 7 jours -->
-        <div class="col-lg-8">
-            <div class="gh-card">
-                <div class="gh-card-header">
-                    <h5 class="gh-card-title"><i class="bi bi-bar-chart me-2"></i>Activité des 7 derniers jours</h5>
+<div class="row g-3">
+    <!-- RDV du jour -->
+    <div class="col-12 col-lg-6">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2"></i>Rendez-vous du jour</h6>
+                    <a href="/RendezVous" class="btn btn-sm btn-outline-primary">Voir tout</a>
                 </div>
-                <div class="gh-card-body">
-                    <canvas id="chartActivite" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-        <!-- Services capacité -->
-        <div class="col-lg-4">
-            <div class="gh-card h-100">
-                <div class="gh-card-header">
-                    <h5 class="gh-card-title"><i class="bi bi-diagram-3 me-2"></i>Capacité des services</h5>
-                    <a href="@Url.Action("Index", "Departement")" class="btn btn-sm btn-outline-primary">Voir tout</a>
-                </div>
-                <div class="gh-card-body p-0">
-                    @foreach (var dept in depts.Take(6))
+                @if (!rdvJour.Any())
+                {
+                    <div class="text-center text-muted py-4 pb-3"><i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-25"></i>Aucun rendez-vous aujourd'hui</div>
+                }
+                else
+                {
+                    @foreach (var rdv in rdvJour)
                     {
-                        var libre = dept.LitsLibres;
-                        var total = dept.Lits.Count;
-                        var pct = total > 0 ? (int)((double)(total - libre) / total * 100) : 0;
-                        var couleur = pct >= 90 ? "danger" : pct >= 70 ? "warning" : "success";
-                        <div class="gh-dept-row">
-                            <div class="gh-dept-info">
-                                <span class="gh-dept-name">@dept.Nom</span>
-                                <span class="gh-dept-meta">@libre / @total lits libres</span>
+                        <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom">
+                            <span class="fw-bold text-primary" style="width:44px;font-size:.9rem">@rdv.DateHeure.ToString("HH:mm")</span>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-semibold text-truncate">@rdv.Patient?.NomComplet</div>
+                                <div class="text-muted text-truncate" style="font-size:.78rem">@rdv.Medecin?.NomComplet &middot; @rdv.Motif</div>
                             </div>
-                            <div class="progress gh-dept-progress">
-                                <div class="progress-bar bg-@couleur" style="width:@pct%"></div>
-                            </div>
+                            <span class="badge text-bg-@rdv.StatutCssClass flex-shrink-0">@rdv.Statut</span>
                         </div>
                     }
-                </div>
+                }
             </div>
         </div>
     </div>
-
-    <div class="row g-3">
-        <!-- RDV du jour -->
-        <div class="col-lg-6">
-            <div class="gh-card">
-                <div class="gh-card-header">
-                    <h5 class="gh-card-title"><i class="bi bi-calendar3 me-2"></i>Rendez-vous du jour</h5>
-                    <a href="@Url.Action("Index", "RendezVous")" class="btn btn-sm btn-outline-primary">Voir tout</a>
+    <!-- Hospitalisations -->
+    <div class="col-12 col-lg-6">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-hospital-fill me-2"></i>Patients hospitalisés</h6>
+                    <a href="/Hospitalisation" class="btn btn-sm btn-outline-primary">Voir tout</a>
                 </div>
-                <div class="gh-card-body p-0">
-                    @if (!rdvJour.Any())
+                @if (!hosps.Any())
+                {
+                    <div class="text-center text-muted py-4 pb-3"><i class="bi bi-house fs-2 d-block mb-2 opacity-25"></i>Aucun patient hospitalisé</div>
+                }
+                else
+                {
+                    @foreach (var h in hosps)
                     {
-                        <div class="text-center text-muted py-4"><i class="bi bi-calendar-x fs-2 d-block mb-2"></i>Aucun rendez-vous aujourd'hui</div>
-                    }
-                    else
-                    {
-                        <div class="gh-list">
-                            @foreach (var rdv in rdvJour)
-                            {
-                                <div class="gh-list-item">
-                                    <div class="gh-list-time">@rdv.DateHeure.ToString("HH:mm")</div>
-                                    <div class="gh-list-content">
-                                        <div class="gh-list-title">@rdv.Patient?.NomComplet</div>
-                                        <div class="gh-list-sub">@rdv.Medecin?.NomComplet &nbsp;·&nbsp; @rdv.Motif</div>
-                                    </div>
-                                    <span class="badge bg-@rdv.StatutCssClass">@rdv.Statut</span>
-                                </div>
-                            }
+                        <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom">
+                            <i class="bi bi-hospital text-primary fs-5 flex-shrink-0"></i>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-semibold text-truncate">@h.Patient?.NomComplet</div>
+                                <div class="text-muted text-truncate" style="font-size:.78rem">@h.Departement?.Nom &middot; Lit @h.Lit?.Numéro &middot; J+@h.DuréeJours</div>
+                            </div>
+                            <a href="/Patient/Details/@h.PatientId" class="btn btn-sm btn-outline-secondary flex-shrink-0">
+                                <i class="bi bi-folder2"></i>
+                            </a>
                         </div>
                     }
-                </div>
-            </div>
-        </div>
-
-        <!-- Hospitalisations en cours -->
-        <div class="col-lg-6">
-            <div class="gh-card">
-                <div class="gh-card-header">
-                    <h5 class="gh-card-title"><i class="bi bi-hospital-fill me-2"></i>Patients hospitalisés</h5>
-                    <a href="@Url.Action("Index", "Hospitalisation")" class="btn btn-sm btn-outline-primary">Voir tout</a>
-                </div>
-                <div class="gh-card-body p-0">
-                    @if (!hosps.Any())
-                    {
-                        <div class="text-center text-muted py-4"><i class="bi bi-house fs-2 d-block mb-2"></i>Aucun patient hospitalisé</div>
-                    }
-                    else
-                    {
-                        <div class="gh-list">
-                            @foreach (var h in hosps)
-                            {
-                                <div class="gh-list-item">
-                                    <div class="gh-list-icon text-primary"><i class="bi bi-hospital"></i></div>
-                                    <div class="gh-list-content">
-                                        <div class="gh-list-title">@h.Patient?.NomComplet</div>
-                                        <div class="gh-list-sub">@h.Departement?.Nom &nbsp;·&nbsp; Lit @h.Lit?.Numéro &nbsp;·&nbsp; J+@h.DuréeJours</div>
-                                    </div>
-                                    <a href="@Url.Action("Details", "Patient", new { id = h.PatientId })" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-folder2"></i>
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
+                }
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const ctx = document.getElementById('chartActivite');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels)),
-        datasets: [
-            {
-                label: 'Rendez-vous',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dataRdv)),
-                backgroundColor: 'rgba(14,165,233,0.7)',
-                borderRadius: 6
-            },
-            {
-                label: 'Consultations',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dataConsult)),
-                backgroundColor: 'rgba(16,185,129,0.7)',
-                borderRadius: 6
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-    }
-});
+(function(){
+    var ctx = document.getElementById('chartActivite');
+    if(!ctx) return;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels)),
+            datasets: [
+                { label: 'Rendez-vous', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dataRdv)), backgroundColor: 'rgba(14,165,233,.7)', borderRadius:5 },
+                { label: 'Consultations', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dataConsult)), backgroundColor: 'rgba(16,185,129,.7)', borderRadius:5 }
+            ]
+        },
+        options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
+    });
+})();
 </script>
 }
