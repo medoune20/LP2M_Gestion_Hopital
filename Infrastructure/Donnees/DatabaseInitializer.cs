@@ -10,6 +10,67 @@ public static class DatabaseInitializer
     {
         await db.Database.EnsureCreatedAsync();
 
+        // Crée les nouvelles tables si elles n'existent pas (mise à jour schéma)
+        await MettreAJourSchemaAsync(db);
+    }
+
+    private static async Task MettreAJourSchemaAsync(AppDbContext db)
+    {
+        var tables = new[]
+        {
+            @"CREATE TABLE IF NOT EXISTS FileAttente (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                PatientId INTEGER REFERENCES Patients(Id) ON DELETE SET NULL,
+                MedecinId INTEGER REFERENCES Medecins(Id) ON DELETE SET NULL,
+                NumeroFile INTEGER NOT NULL DEFAULT 0,
+                NomVisiteur TEXT NOT NULL DEFAULT '',
+                MotifVisite TEXT NOT NULL DEFAULT '',
+                DateArrivee TEXT NOT NULL DEFAULT (datetime('now')),
+                DateAppel TEXT, DateFin TEXT,
+                Statut INTEGER NOT NULL DEFAULT 0,
+                Priorite INTEGER NOT NULL DEFAULT 0,
+                Notes TEXT)",
+            @"CREATE TABLE IF NOT EXISTS Paiements (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                PatientId INTEGER REFERENCES Patients(Id) ON DELETE SET NULL,
+                ConsultationId INTEGER REFERENCES Consultations(Id) ON DELETE SET NULL,
+                HospitalisationId INTEGER REFERENCES Hospitalisations(Id) ON DELETE SET NULL,
+                UtilisateurId INTEGER NOT NULL DEFAULT 0,
+                Reference TEXT NOT NULL DEFAULT '',
+                LibellePrestation TEXT NOT NULL DEFAULT '',
+                Montant REAL NOT NULL DEFAULT 0,
+                ModePaiement INTEGER NOT NULL DEFAULT 0,
+                Statut INTEGER NOT NULL DEFAULT 0,
+                NumeroPaiementMobile TEXT,
+                DatePaiement TEXT NOT NULL DEFAULT (datetime('now')))",
+            @"CREATE TABLE IF NOT EXISTS EcrituresComptables (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Date TEXT NOT NULL DEFAULT (datetime('now')),
+                Libelle TEXT NOT NULL DEFAULT '',
+                Credit REAL NOT NULL DEFAULT 0,
+                Debit REAL NOT NULL DEFAULT 0,
+                ReferenceSource TEXT)",
+            @"CREATE TABLE IF NOT EXISTS Alertes (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Message TEXT NOT NULL DEFAULT '',
+                Niveau INTEGER NOT NULL DEFAULT 0,
+                Statut INTEGER NOT NULL DEFAULT 0,
+                DateCreation TEXT NOT NULL DEFAULT (datetime('now')),
+                DateLecture TEXT, Lien TEXT, Icone TEXT)",
+            @"CREATE TABLE IF NOT EXISTS JournalMails (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Destinataire TEXT NOT NULL DEFAULT '',
+                Sujet TEXT NOT NULL DEFAULT '',
+                Corps TEXT NOT NULL DEFAULT '',
+                Statut INTEGER NOT NULL DEFAULT 0,
+                DateEnvoi TEXT NOT NULL DEFAULT (datetime('now')),
+                Erreur TEXT,
+                UtilisateurId INTEGER NOT NULL DEFAULT 0)"
+        };
+
+        foreach (var sql in tables)
+            await db.Database.ExecuteSqlRawAsync(sql);
+
         if (!db.Etablissements.Any())
         {
             db.Etablissements.Add(new Etablissement
