@@ -15,8 +15,8 @@
             <p class="gh-page-subtitle">@DateTime.Now.ToString("dddd dd MMMM yyyy")</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="/Patient/Nouveau" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nouveau patient</a>
-            <a href="/RendezVous/Nouveau" class="btn btn-outline-primary"><i class="bi bi-calendar-plus me-1"></i>Nouveau RDV</a>
+            <a href="@Url.Action("Nouveau", "Patient")" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Nouveau patient</a>
+            <a href="@Url.Action("Nouveau", "RendezVous")" class="btn btn-outline-primary"><i class="bi bi-calendar-plus me-1"></i>Nouveau RDV</a>
         </div>
     </div>
 </div>
@@ -67,14 +67,14 @@
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="/Examen" class="gh-metric-card gh-metric-red text-decoration-none">
+            <a href="@Url.Action("Index", "Examen")" class="gh-metric-card gh-metric-red text-decoration-none">
                 <div class="gh-metric-icon"><i class="bi bi-droplet-half"></i></div>
                 <div class="gh-metric-value">@ViewBag.ExamensPending</div>
                 <div class="gh-metric-label">Examens en attente</div>
             </a>
         </div>
         <div class="col-6 col-lg-3">
-            <a href="/RendezVous/Nouveau" class="gh-metric-card gh-metric-cyan text-decoration-none">
+            <a href="@Url.Action("Nouveau", "RendezVous")" class="gh-metric-card gh-metric-cyan text-decoration-none">
                 <div class="gh-metric-icon"><i class="bi bi-plus-circle"></i></div>
                 <div class="gh-metric-value"><i class="bi bi-arrow-right-circle"></i></div>
                 <div class="gh-metric-label">Planifier un RDV</div>
@@ -99,7 +99,7 @@
             <div class="gh-card h-100">
                 <div class="gh-card-header">
                     <h5 class="gh-card-title"><i class="bi bi-diagram-3 me-2"></i>Capacité des services</h5>
-                    <a href="/Departement" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    <a href="@Url.Action("Index", "Departement")" class="btn btn-sm btn-outline-primary">Voir tout</a>
                 </div>
                 <div class="gh-card-body p-0">
                     @foreach (var dept in depts.Take(6))
@@ -129,7 +129,7 @@
             <div class="gh-card">
                 <div class="gh-card-header">
                     <h5 class="gh-card-title"><i class="bi bi-calendar3 me-2"></i>Rendez-vous du jour</h5>
-                    <a href="/RendezVous" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    <a href="@Url.Action("Index", "RendezVous")" class="btn btn-sm btn-outline-primary">Voir tout</a>
                 </div>
                 <div class="gh-card-body p-0">
                     @if (!rdvJour.Any())
@@ -161,7 +161,7 @@
             <div class="gh-card">
                 <div class="gh-card-header">
                     <h5 class="gh-card-title"><i class="bi bi-hospital-fill me-2"></i>Patients hospitalisés</h5>
-                    <a href="/Hospitalisation" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    <a href="@Url.Action("Index", "Hospitalisation")" class="btn btn-sm btn-outline-primary">Voir tout</a>
                 </div>
                 <div class="gh-card-body p-0">
                     @if (!hosps.Any())
@@ -179,7 +179,7 @@
                                         <div class="gh-list-title">@h.Patient?.NomComplet</div>
                                         <div class="gh-list-sub">@h.Departement?.Nom &nbsp;·&nbsp; Lit @h.Lit?.Numéro &nbsp;·&nbsp; J+@h.DuréeJours</div>
                                     </div>
-                                    <a href="/Patient/Details/@h.PatientId" class="btn btn-sm btn-outline-secondary">
+                                    <a href="@Url.Action("Details", "Patient", new { id = h.PatientId })" class="btn btn-sm btn-outline-secondary">
                                         <i class="bi bi-folder2"></i>
                                     </a>
                                 </div>
