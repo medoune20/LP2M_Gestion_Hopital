@@ -1,0 +1,119 @@
+@using GestionHopital.Domaine
+@using GestionHopital.Domaine.Models
+@{
+    ViewData["Title"] = "LP2M Santé";
+    var etabs = ViewBag.Etablissements as List<Etablissement> ?? new();
+    var users = ViewBag.Utilisateurs as List<Utilisateur> ?? new();
+    var patients = ViewBag.Patients as List<Patient> ?? new();
+    var medecins = ViewBag.Medecins as List<Medecin> ?? new();
+    var profils = ViewBag.Profils as List<Dictionary<string,string>> ?? new();
+    var file = ViewBag.FileAttente as List<Dictionary<string,string>> ?? new();
+    var teles = ViewBag.Teleconsultations as List<Dictionary<string,string>> ?? new();
+    var paiements = ViewBag.Paiements as List<Dictionary<string,string>> ?? new();
+    var ecritures = ViewBag.Ecritures as List<Dictionary<string,string>> ?? new();
+    var alertes = ViewBag.Alertes as List<Dictionary<string,string>> ?? new();
+    var acces = ViewBag.AccesPatients as List<Dictionary<string,string>> ?? new();
+    var emails = ViewBag.Emails as List<Dictionary<string,string>> ?? new();
+    Func<string,string> v = s => string.IsNullOrWhiteSpace(s) ? "-" : s;
+}
+
+<div class="gh-page-header">
+    <div class="gh-page-header-inner">
+        <div>
+            <h1 class="gh-page-title"><i class="bi bi-grid-1x2 me-2"></i>LP2M Santé</h1>
+            <p class="gh-page-subtitle">Administration, opérations, paiements, alertes et portail patient.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="#file" class="btn btn-light"><i class="bi bi-people me-1"></i>File d'attente</a>
+            <a href="#paiements" class="btn btn-outline-light"><i class="bi bi-cash-coin me-1"></i>Paiements</a>
+        </div>
+    </div>
+</div>
+
+<div class="gh-content">
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-blue"><div class="gh-metric-icon"><i class="bi bi-building"></i></div><div class="gh-metric-value">@etabs.Count</div><div class="gh-metric-label">Tenants / établissements</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-indigo"><div class="gh-metric-icon"><i class="bi bi-person-gear"></i></div><div class="gh-metric-value">@users.Count</div><div class="gh-metric-label">Utilisateurs</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-orange"><div class="gh-metric-icon"><i class="bi bi-hourglass-split"></i></div><div class="gh-metric-value">@ViewBag.FileEnAttente</div><div class="gh-metric-label">Patients en attente</div></div></div>
+        <div class="col-6 col-lg-3"><div class="gh-metric-card gh-metric-green"><div class="gh-metric-icon"><i class="bi bi-cash-stack"></i></div><div class="gh-metric-value">@string.Format("{0:N0}", ViewBag.TotalRecettesJour)</div><div class="gh-metric-label">Recettes du jour FCFA</div></div></div>
+    </div>
+
+    <ul class="nav nav-pills gap-2 mb-3 flex-nowrap overflow-auto gh-tabs" id="lp2mTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#admin" type="button">Admin</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#file" type="button">File d'attente</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#teleconsultation" type="button">Téléconsultation</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#paiements" type="button">Paiements</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#compta" type="button">Comptabilité</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#patient" type="button">Accès patient</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#alertes" type="button">Alertes & mails</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="admin">
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title">Créer un tenant</h5></div><div class="gh-card-body">
+                        <form asp-action="CreerEtablissement" method="post" class="vstack gap-2">
+                            @Html.AntiForgeryToken()
+                            <input name="nom" class="form-control" placeholder="Nom établissement" required />
+                            <input name="adresse" class="form-control" placeholder="Adresse" />
+                            <input name="telephone" class="form-control" placeholder="Téléphone" />
+                            <input name="email" type="email" class="form-control" placeholder="Email" />
+                            <button class="btn btn-primary">Créer</button>
+                        </form>
+                    </div></div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title">Créer un utilisateur</h5></div><div class="gh-card-body">
+                        <form asp-action="CreerUtilisateur" method="post" class="vstack gap-2">
+                            @Html.AntiForgeryToken()
+                            <input name="login" class="form-control" placeholder="Login" required />
+                            <div class="row g-2"><div class="col"><input name="prenom" class="form-control" placeholder="Prénom" /></div><div class="col"><input name="nom" class="form-control" placeholder="Nom" /></div></div>
+                            <input name="email" type="email" class="form-control" placeholder="Email" />
+                            <select name="role" class="form-select">
+                                <option value="0">SuperAdmin</option><option value="1">Administrateur</option><option value="2">Médecin</option><option value="3">Infirmier</option><option value="4">Réceptionniste</option><option value="5">Laborantin</option>
+                            </select>
+                            <input name="motDePasse" type="password" class="form-control" placeholder="Mot de passe" required />
+                            <button class="btn btn-primary">Créer</button>
+                        </form>
+                    </div></div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="gh-card h-100"><div class="gh-card-header"><h5 class="gh-card-title">Créer un profil</h5></div><div class="gh-card-body">
+                        <form asp-action="CreerProfil" method="post" class="vstack gap-2">
+                            @Html.AntiForgeryToken()
+                            <input name="nom" class="form-control" placeholder="Nom du profil" required />
+                            <input name="code" class="form-control" placeholder="Code" required />
+                            <select name="roleBase" class="form-select"><option value="1">Administrateur</option><option value="2">Médecin</option><option value="3">Infirmier</option><option value="4">Réceptionniste</option><option value="5">Laborantin</option></select>
+                            <textarea name="permissions" class="form-control" rows="3" placeholder="permissions séparées par virgule">dashboard,patients,rendezvous</textarea>
+                            <button class="btn btn-primary">Créer</button>
+                        </form>
+                    </div></div>
+                </div>
+                <div class="col-lg-6"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Profils</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var p in profils){<tr><td><strong>@p["Nom"]</strong><div class="small text-muted">@p["Code"]</div></td><td>@p["Permissions"]</td></tr>}</tbody></table></div></div></div>
+                <div class="col-lg-6"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Utilisateurs</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var u in users.Take(12)){<tr><td><strong>@u.NomComplet</strong><div class="small text-muted">@u.Login</div></td><td>@u.RoleLibellé</td><td>@(u.Actif ? "Actif" : "Inactif")</td></tr>}</tbody></table></div></div></div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="file">
+            <div class="row g-3">
+                <div class="col-lg-4"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Ajouter à la file</h5></div><div class="gh-card-body"><form asp-action="AjouterFile" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<select name="patientId" class="form-select">@foreach(var p in patients){<option value="@p.Id">@p.NomComplet</option>}</select><select name="medecinId" class="form-select"><option value="">Médecin non affecté</option>@foreach(var m in medecins){<option value="@m.Id">@m.NomComplet</option>}</select><input name="service" class="form-control" placeholder="Service" value="Accueil" /><input name="motif" class="form-control" placeholder="Motif" /><select name="priorite" class="form-select"><option value="1">Urgent</option><option value="2">Prioritaire</option><option value="3" selected>Normal</option></select><button class="btn btn-primary">Ajouter</button></form></div></div></div>
+                <div class="col-lg-8"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">File active</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var r in file){<tr><td><strong>@r["Numero"]</strong><div class="small text-muted">@r["DateArrivee"]</div></td><td>@r["Patient"]<div class="small text-muted">@r["Motif"]</div></td><td><span class="badge text-bg-warning">@r["Statut"]</span></td><td class="text-end"><form asp-action="ChangerFile" method="post" class="d-inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@r["Id"]"/><input type="hidden" name="statut" value="Appelé"/><button class="btn btn-sm btn-outline-primary">Appeler</button></form> <form asp-action="ChangerFile" method="post" class="d-inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@r["Id"]"/><input type="hidden" name="statut" value="Clôturé"/><button class="btn btn-sm btn-outline-success">Clôturer</button></form></td></tr>}</tbody></table></div></div></div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="teleconsultation">
+            <div class="row g-3"><div class="col-lg-4"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Planifier</h5></div><div class="gh-card-body"><form asp-action="CreerTeleconsultation" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<select name="patientId" class="form-select">@foreach(var p in patients){<option value="@p.Id">@p.NomComplet</option>}</select><select name="medecinId" class="form-select"><option value="">Médecin</option>@foreach(var m in medecins){<option value="@m.Id">@m.NomComplet</option>}</select><input name="dateHeure" type="datetime-local" class="form-control" required /><input name="motif" class="form-control" placeholder="Motif" /><input name="lienVideo" class="form-control" placeholder="Lien vidéo" /><input name="emailPatient" class="form-control" placeholder="Email patient" /><input name="telephonePatient" class="form-control" placeholder="Téléphone" /><button class="btn btn-primary">Planifier</button></form></div></div></div><div class="col-lg-8"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Téléconsultations</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var t in teles){<tr><td>@t["DateHeure"]</td><td><strong>@t["Patient"]</strong><div class="small text-muted">@t["Motif"]</div></td><td>@t["Medecin"]</td><td><a href="@t["LienVideo"]" target="_blank">Lien</a></td><td>@t["Statut"]</td></tr>}</tbody></table></div></div></div></div>
+        </div>
+
+        <div class="tab-pane fade" id="paiements">
+            <div class="row g-3"><div class="col-lg-4"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Encaisser</h5></div><div class="gh-card-body"><form asp-action="EnregistrerPaiement" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<select name="patientId" class="form-select"><option value="">Patient comptoir</option>@foreach(var p in patients){<option value="@p.Id">@p.NomComplet</option>}</select><input name="libelle" class="form-control" placeholder="Libellé" value="Consultation" /><input name="montant" type="number" class="form-control" placeholder="Montant FCFA" required /><select name="modePaiement" class="form-select"><option>Espèces</option><option>Orange Money</option><option>Wave</option><option>MTN MoMo</option><option>Moov Money</option><option>Carte bancaire</option></select><input name="referenceOperateur" class="form-control" placeholder="Référence paiement" /><button class="btn btn-success">Valider paiement</button></form></div></div></div><div class="col-lg-8"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Paiements récents</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var p in paiements){<tr><td><strong>@p["Reference"]</strong><div class="small text-muted">@p["DatePaiement"]</div></td><td>@p["Patient"]</td><td>@p["Libelle"]</td><td class="text-end fw-bold">@string.Format("{0:N0}", decimal.TryParse(p["Montant"], out var mt) ? mt : 0) FCFA</td><td>@p["ModePaiement"]</td></tr>}</tbody></table></div></div></div></div>
+        </div>
+
+        <div class="tab-pane fade" id="compta"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Écritures comptables automatiques</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var e in ecritures){<tr><td>@e["DateEcriture"]</td><td>@e["Type"]</td><td>@e["Categorie"]</td><td>@e["Libelle"]</td><td class="text-end fw-bold">@e["Montant"]</td><td>@e["Reference"]</td></tr>}</tbody></table></div></div></div>
+
+        <div class="tab-pane fade" id="patient"><div class="row g-3"><div class="col-lg-4"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Créer accès patient</h5></div><div class="gh-card-body"><form asp-action="CreerAccesPatient" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<select name="patientId" class="form-select">@foreach(var p in patients){<option value="@p.Id">@p.NomComplet</option>}</select><input name="identifiant" class="form-control" placeholder="Identifiant patient" required /><input name="motDePasse" type="password" class="form-control" placeholder="Mot de passe" required /><input name="email" class="form-control" placeholder="Email" /><input name="telephone" class="form-control" placeholder="Téléphone" /><button class="btn btn-primary">Créer accès</button></form></div></div></div><div class="col-lg-8"><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Accès patients</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var a in acces){<tr><td>@a["Patient"]</td><td><strong>@a["Identifiant"]</strong></td><td>@a["Email"]</td><td>@a["Telephone"]</td><td>@(a["Actif"] == "1" ? "Actif" : "Inactif")</td></tr>}</tbody></table></div></div></div></div></div>
+
+        <div class="tab-pane fade" id="alertes"><div class="row g-3"><div class="col-lg-4"><div class="gh-card mb-3"><div class="gh-card-header"><h5 class="gh-card-title">Créer une alerte</h5></div><div class="gh-card-body"><form asp-action="CreerAlerte" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<select name="niveau" class="form-select"><option>Info</option><option>Warning</option><option>Critique</option></select><input name="module" class="form-control" placeholder="Module" /><textarea name="message" class="form-control" rows="3" placeholder="Message"></textarea><button class="btn btn-warning">Créer alerte</button></form></div></div><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Envoyer un mail</h5></div><div class="gh-card-body"><form asp-action="EnvoyerMail" method="post" class="vstack gap-2">@Html.AntiForgeryToken()<input name="destinataire" type="email" class="form-control" placeholder="Destinataire" required /><input name="sujet" class="form-control" placeholder="Sujet" required /><textarea name="corps" class="form-control" rows="4" placeholder="Message HTML ou texte"></textarea><button class="btn btn-primary">Envoyer</button></form></div></div></div><div class="col-lg-8"><div class="gh-card mb-3"><div class="gh-card-header"><h5 class="gh-card-title">Alertes</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var a in alertes){<tr><td><span class="badge @(a["Niveau"] == "Critique" ? "text-bg-danger" : a["Niveau"] == "Warning" ? "text-bg-warning" : "text-bg-info")">@a["Niveau"]</span></td><td>@a["Module"]</td><td>@a["Message"]</td><td>@a["DateCreation"]</td><td>@if(a["Traitee"] != "1"){<form asp-action="TraiterAlerte" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@a["Id"]"/><button class="btn btn-sm btn-outline-success">Traiter</button></form>}</td></tr>}</tbody></table></div></div><div class="gh-card"><div class="gh-card-header"><h5 class="gh-card-title">Journal emails</h5></div><div class="table-responsive"><table class="table gh-table"><tbody>@foreach(var m in emails){<tr><td>@m["DateCreation"]</td><td>@m["Destinataire"]</td><td>@m["Sujet"]</td><td>@(m["Envoye"] == "1" ? "Envoyé" : "Échec")</td><td class="small text-muted">@m["Erreur"]</td></tr>}</tbody></table></div></div></div></div></div>
+    </div>
+</div>
