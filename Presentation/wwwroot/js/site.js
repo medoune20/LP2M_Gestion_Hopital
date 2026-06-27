@@ -1,6 +1,31 @@
 /* GestionHopital — JavaScript global */
 
 document.addEventListener('DOMContentLoaded', function () {
+    const basePath = (document.body?.dataset?.pathBase || '').replace(/\/$/, '');
+
+    function isInternalAbsolute(url) {
+        return url && url.startsWith('/') && !url.startsWith('//') && !url.startsWith(basePath + '/');
+    }
+
+    function withBasePath(url) {
+        if (!basePath || !isInternalAbsolute(url)) return url;
+        if (url.startsWith('/gestionbar')) return url;
+        if (url.startsWith('/hopital')) return url;
+        return basePath + url;
+    }
+
+    // Sécurise les anciens liens/formulaires écrits en dur (/Patient, /RendezVous/Nouveau, etc.).
+    // Cela évite les écrans iPhone de type « télécharger Nouveau / Connexion » quand l'app est hébergée sous /hopital.
+    document.querySelectorAll('a[href]').forEach(function (a) {
+        const href = a.getAttribute('href');
+        if (isInternalAbsolute(href)) a.setAttribute('href', withBasePath(href));
+    });
+
+    document.querySelectorAll('form[action]').forEach(function (form) {
+        const action = form.getAttribute('action');
+        if (isInternalAbsolute(action)) form.setAttribute('action', withBasePath(action));
+    });
+
     // Mobile menu
     const mobileBtn = document.getElementById('mobileMenuBtn');
     const overlay = document.getElementById('mobileOverlay');
@@ -21,6 +46,9 @@ document.addEventListener('DOMContentLoaded', function () {
     mobileBtn?.addEventListener('click', openDrawer);
     overlay?.addEventListener('click', closeDrawer);
     closeBtn?.addEventListener('click', closeDrawer);
+    document.querySelectorAll('.gh-mobile-drawer a, .gh-bottom-nav a').forEach(function (a) {
+        a.addEventListener('click', closeDrawer);
+    });
 
     // Auto-dismiss alerts
     document.querySelectorAll('.alert-dismissible').forEach(function (alert) {
